@@ -1,5 +1,5 @@
 {
-  "name": "js-test",
+  "name": "OreAndOrbitHelper",
   "version": "1.0.0",
   "description": "Crappy helper tool for ore and orbit",
   "main": "crafting-data.js",
