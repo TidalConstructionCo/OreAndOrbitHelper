@@ -17,6 +17,38 @@ const materialAvailability = {
     "Saline Brine": 5,
 };
 
+function addNodeUtilization(node, totalDuration) {
+    if (
+        node.duration != null &&
+        totalDuration > 0
+    ) {
+        node.utilization = node.duration / totalDuration;
+    } else {
+        node.utilization = null;
+    }
+
+    for (const child of node.children) {
+        addNodeUtilization(child, totalDuration);
+    }
+}
+
+function formatRecipe(recipe) {
+    const inputs = recipe.inputs
+        .map(input =>
+            `${formatAmount(input.amount)}x ${input.material}`
+        )
+        .join(" + ");
+
+    const outputs = recipe.outputs
+        .map(output =>
+            `${formatAmount(output.amount)}x ${output.material}`
+        )
+        .join(" + ");
+
+    return `[${inputs}] => [${outputs}]`;
+}
+
+
 function updateMaterialAvailability() {
     for (const [material, availability] of Object.entries(
         materialAvailability
@@ -64,12 +96,19 @@ function getOutput(recipe, material) {
 
 function buildCraftingTree(targetMaterial) {
     const rawMaterials = {};
+
     const root = buildTreeNode(
         targetMaterial,
         null,
         new Set(),
         rawMaterials
     );
+
+    // Store utilization as a decimal:
+    // 1 = 100%, 0.5 = 50%, etc.
+    if (root.duration > 0) {
+        addNodeUtilization(root, root.duration);
+    }
 
     const extractorRequirements = [];
 
@@ -81,7 +120,6 @@ function buildCraftingTree(targetMaterial) {
         }
 
         const availability = materialAvailability[material] || 5;
-        // make the following generic instead:
         const availabilityModifer = availability * 0.16 + 0.2;
 
         const extractionCycles =
@@ -106,6 +144,15 @@ function buildCraftingTree(targetMaterial) {
         extractorRequirements
     };
 }
+
+function formatPercent(value) {
+    if (value == null) {
+        return "";
+    }
+
+    return `${formatAmount(value * 100)}%`;
+}
+
 
 function buildTreeNode(
     targetMaterial,
@@ -165,10 +212,12 @@ function buildTreeNode(
         amount,
         cycles,
         duration: recipe.duration * cycles,
+        recipe,
         children: [],
         isRaw: false,
         cycleDetected: false
     };
+
 
     const nextVisited = new Set(visited);
     nextVisited.add(targetMaterial);
@@ -428,8 +477,10 @@ function renderCraftingTree(rootNode) {
 
             return `${formatAmount(node.data.amount)}x · ` +
                 `${formatAmount(node.data.cycles)} cycles · ` +
-                `${formatAmount(node.data.duration)} min`;
+                `${formatAmount(node.data.duration)} min · ` +
+                `${formatPercent(node.data.utilization)} utilization`;
         });
+
 
     nodeSelection
         .filter(node =>
@@ -478,6 +529,30 @@ function getRecipeChoicesCount(material) {
     return recipesProducing(material).length;
 }
 
+function summedRecipeUtilization(rootNode) {
+    const totals = new Map();
+
+    function visit(node) {
+        if (
+            !node.isRaw &&
+            !node.cycleDetected &&
+            node.recipe &&
+            node.utilization != null
+        ) {
+            const current = totals.get(node.recipe) ?? 0;
+            totals.set(node.recipe, current + node.utilization);
+        }
+
+        for (const child of node.children) {
+            visit(child);
+        }
+    }
+
+    visit(rootNode);
+    return totals;
+}
+
+
 function renderSummary(tree) {
     const summary = document.getElementById("summary");
     summary.replaceChildren();
@@ -508,6 +583,38 @@ function renderSummary(tree) {
     rawPanel.appendChild(rawList);
     summary.appendChild(rawPanel);
 
+    // New recipe utilization panel
+    const utilizationPanel = document.createElement("div");
+    utilizationPanel.className = "panel";
+
+    const utilizationTitle = document.createElement("h2");
+    utilizationTitle.textContent =
+        "Summed recipe utilization";
+    utilizationPanel.appendChild(utilizationTitle);
+
+    const utilizationList = document.createElement("ul");
+    const recipeTotals = summedRecipeUtilization(tree.root);
+
+    for (const [recipe, utilization] of recipeTotals) {
+        const item = document.createElement("li");
+
+        item.textContent =
+            `${formatPercent(utilization)}: ${formatRecipe(recipe)}`;
+
+
+        utilizationList.appendChild(item);
+    }
+
+    if (utilizationList.children.length === 0) {
+        const item = document.createElement("li");
+        item.className = "muted";
+        item.textContent = "None";
+        utilizationList.appendChild(item);
+    }
+
+    utilizationPanel.appendChild(utilizationList);
+    summary.appendChild(utilizationPanel);
+
     const extractorPanel = document.createElement("div");
     extractorPanel.className = "panel";
 
@@ -521,7 +628,8 @@ function renderSummary(tree) {
     for (const requirement of tree.extractorRequirements) {
         const item = document.createElement("li");
         item.textContent =
-            `${formatAmount(requirement.extractors)}x ${requirement.material} extractor`;
+            `${formatAmount(requirement.extractors)}x ` +
+            `${requirement.material} extractor`;
         extractorList.appendChild(item);
     }
 
@@ -535,6 +643,7 @@ function renderSummary(tree) {
     extractorPanel.appendChild(extractorList);
     summary.appendChild(extractorPanel);
 }
+
 
 function render() {
     const target = document.getElementById("target-select").value;
