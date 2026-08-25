@@ -236,31 +236,115 @@
             text-align: right;
             font-weight: bold;
         }
+
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 220px;
+            flex-shrink: 0;
+            padding: 20px;
+            background: #1d2430;
+            color: white;
+        }
+
+        .content {
+            flex: 1;
+            padding: 24px;
+            min-width: 0;
+        }
+
+        .tool-button {
+            display: block;
+            width: 100%;
+            margin: 8px 0;
+            padding: 12px;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            text-align: left;
+            font: inherit;
+        }
+
+        .tool-button:hover,
+        .tool-button.active {
+            background: #3b82f6;
+        }
+
+        .tool-panel {
+            display: none;
+        }
+
+        .tool-panel.active {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .app-layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: auto;
+            }
+
+            .tool-button {
+                display: inline-block;
+                width: auto;
+                margin-right: 6px;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <h1>Crafting Tree</h1>
-    <div class="controls">
-        <label for="target-select">Target:</label>
-        <select id="target-select"></select>
+    <div class="app">
+        <aside class="sidebar">
+            <h2>Ore & Orbit</h2>
 
-        <label for="tree-search">Search:</label>
-        <input id="tree-search" type="search" placeholder="Search materials..." autocomplete="off">
+            <button class="tool-button active" data-tool="crafting-tree">
+                Crafting Tree
+            </button>
+
+            <button class="tool-button" data-tool="another-tool">
+                Another Tool
+            </button>
+        </aside>
+
+        <main class="content">
+            <section id="crafting-tree" class="tool-panel active">
+                <h1>Crafting Tree</h1>
+                <div class="controls">
+                    <label for="target-select">Target:</label>
+                    <select id="target-select"></select>
+
+                    <label for="tree-search">Search:</label>
+                    <input id="tree-search" type="search" placeholder="Search materials..." autocomplete="off">
+                </div>
+
+                <div id="tree" class="tree"></div>
+
+                <div class="extractor-settings">
+                    <h2>Material Abundance</h2>
+                </div>
+                <div id="summary" class="summary"></div>
+                <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+                <!-- <script src="./dist/crafting-data.js"></script> -->
+                <script type="module" src="./dist/main-script.js"></script>
+            </section>
+
+            <section id="another-tool" class="tool-panel">
+                <h1>Another Tool</h1>
+                <p>Your second tool goes here.</p>
+            </section>
+        </main>
+
+
     </div>
-
-    <div id="tree" class="tree"></div>
-
-    <div class="extractor-settings">
-        <h2>Material Abundance</h2>
-        <!-- <label for="iron-ore">Iron Ore Abundance:</label>
-        <input type="range" value="5" id="iron-ore" name="Iron Ore" min="1" max="10" step="1"></input>
-        <output id="iron-ore-value"></output> -->
-    </div>
-    <div id="summary" class="summary"></div>
-    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-    <script src="crafting-data.js"></script>
-    <script src="main-script.js"></script>
 </body>
 
 </html>
