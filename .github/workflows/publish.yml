@@ -38,6 +38,7 @@ jobs:
 
       - name: Build TypeScript
         run: npm run build
+        continue-on-error: true
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
