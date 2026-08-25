@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Crafting Tree</title>
+
+    <style>
+        :root {
+            font-family: system-ui, sans-serif;
+            color-scheme: light dark;
+        }
+
+
+        body {
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 100vh;
+            margin: 0;
+            padding: 24px;
+        }
+
+
+
+        h1 {
+            margin-top: 0;
+        }
+
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            #tree {
+                height: calc(100vh - 230px);
+                min-height: 320px;
+            }
+
+            #tree-search {
+                width: 100%;
+            }
+        }
+
+
+        select {
+            padding: 6px 8px;
+            font: inherit;
+        }
+
+
+        #tree {
+            width: 100%;
+            height: calc(100vh - 260px);
+            min-height: 420px;
+            max-height: 900px;
+            border: 1px solid #8886;
+            border-radius: 8px;
+            overflow: auto;
+            background: color-mix(in srgb, Canvas 96%, currentColor 4%);
+        }
+
+
+        #tree-search {
+            width: 220px;
+            padding: 6px 8px;
+            font: inherit;
+        }
+
+        .node {
+            transition: opacity 0.2s ease;
+        }
+
+        .node.search-dim {
+            opacity: 0.25;
+        }
+
+        .node.search-match rect {
+            stroke: #ffd54f;
+            stroke-width: 5px;
+            filter: drop-shadow(0 0 8px #ffd54f);
+        }
+
+        .node.search-match text {
+            font-weight: 700;
+        }
+
+
+        #tree svg {
+            display: block;
+            min-width: 100%;
+            min-height: 100%;
+            cursor: grab;
+        }
+
+
+        #tree svg:active {
+            cursor: grabbing;
+        }
+
+        .link {
+            fill: none;
+            stroke: #8888;
+            stroke-width: 2px;
+        }
+
+        .node rect {
+            stroke-width: 2px;
+        }
+
+        .node.crafted rect {
+            fill: #315d91;
+            stroke: #6ea8dc;
+        }
+
+        .node.raw rect {
+            fill: #285c38;
+            stroke: #7cc576;
+        }
+
+        .node.cycle rect {
+            fill: #713d3d;
+            stroke: #e57373;
+        }
+
+        .node text {
+            fill: white;
+            font-family: system-ui, sans-serif;
+            pointer-events: none;
+        }
+
+        .node .material {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .node .details {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .node foreignObject {
+            overflow: visible;
+        }
+
+        .node select {
+            width: 180px;
+            margin-top: 5px;
+            padding: 2px 4px;
+            font: 12px system-ui, sans-serif;
+        }
+
+
+        .recipe-choice {
+            font-family: system-ui, sans-serif;
+            font-size: 0.9em;
+            padding: 2px 5px;
+        }
+
+        .summary {
+            margin-top: 28px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        .panel {
+            border: 1px solid #8886;
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .panel h2 {
+            font-size: 1.1rem;
+            margin-top: 0;
+        }
+
+        .panel ul {
+            margin: 0;
+            padding-left: 22px;
+        }
+
+        .muted {
+            opacity: 0.7;
+        }
+
+        .extractor-settings {
+            border: 1px solid #999;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .extractor-settings h2 {
+            grid-column: 1 / -1;
+            margin: 0;
+        }
+
+        .extractor-setting {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            grid-template-areas:
+                "label output"
+                "slider slider";
+            gap: 0.35rem 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .extractor-setting label {
+            grid-area: label;
+        }
+
+        .extractor-setting input[type="range"] {
+            grid-area: slider;
+            width: 100%;
+        }
+
+        .extractor-setting output {
+            grid-area: output;
+            min-width: 2ch;
+            text-align: right;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Crafting Tree</h1>
+    <div class="controls">
+        <label for="target-select">Target:</label>
+        <select id="target-select"></select>
+
+        <label for="tree-search">Search:</label>
+        <input id="tree-search" type="search" placeholder="Search materials..." autocomplete="off">
+    </div>
+
+    <div id="tree" class="tree"></div>
+
+    <div class="extractor-settings">
+        <h2>Material Abundance</h2>
+        <!-- <label for="iron-ore">Iron Ore Abundance:</label>
+        <input type="range" value="5" id="iron-ore" name="Iron Ore" min="1" max="10" step="1"></input>
+        <output id="iron-ore-value"></output> -->
+    </div>
+    <div id="summary" class="summary"></div>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="crafting-data.js"></script>
+    <script src="main-script.js"></script>
+</body>
+
+</html>
