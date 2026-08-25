@@ -1,10 +1,3 @@
-/*
- * Replace this example data with the contents of your data.py file.
- *
- * Every material has a unique name.
- * A material can have zero, one, or several crafting recipes.
- */
-
 const materials = GAME_DATA.materials;
 const recipes = GAME_DATA.recipes;
 const extractionRecipes = GAME_DATA.extractionRecipes;
@@ -584,18 +577,25 @@ function initialize() {
 
 
     createExtractorSettings();
-    // {
-    //     // Extractor Settings
-    //     const ironOreAvailability = document.getElementById("iron-ore");
-    //     ironOreAvailability.addEventListener("input", (event) => {
-    //         materialAvailability["Iron Ore"] = event.target.value;
-    //         render();
-    //     });
-    //     // updateMaterialAvailability();
-    // }
-
     render();
 }
+
+const toolButtons = document.querySelectorAll(".tool-button");
+const toolPanels = document.querySelectorAll(".tool-panel");
+
+toolButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+        const selectedTool = button.dataset.tool;
+
+        toolButtons.forEach((item) => {
+            item.classList.toggle("active", item === button);
+        });
+
+        toolPanels.forEach((panel) => {
+            panel.classList.toggle("active", panel.id === selectedTool);
+        });
+    });
+});
 
 
 initialize();
