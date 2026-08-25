@@ -1,4 +1,27 @@
-const GAME_DATA = {
+interface MaterialAmount {
+    material: string;
+    amount: number;
+}
+
+interface Recipe {
+    name: string;
+    duration: number;
+    inputs: MaterialAmount[];
+    outputs: MaterialAmount[];
+}
+
+interface ExtractionRecipe {
+    amount: number;
+    duration: number;
+}
+
+interface GameData {
+    materials: string[];
+    recipes: Recipe[];
+    extractionRecipes: Record<string, ExtractionRecipe>;
+}
+
+const GAME_DATA: GameData = {
     materials: [
         "Structural Frame",
         "Silica Sand",
@@ -452,3 +475,5 @@ const GAME_DATA = {
         }
     }
 };
+
+export default GAME_DATA;

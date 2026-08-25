@@ -1,3 +1,4 @@
+import GAME_DATA from "./crafting-data.js";
 const materials = GAME_DATA.materials;
 const recipes = GAME_DATA.recipes;
 const extractionRecipes = GAME_DATA.extractionRecipes;
