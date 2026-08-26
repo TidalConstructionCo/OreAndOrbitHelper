@@ -55,7 +55,10 @@ function updateMaterialAvailability() {
     for (const [material, availability] of Object.entries(
         materialAvailability
     )) {
-        const id = materialToId(material);
+        const id = material
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "");
         const output = document.getElementById(`${id}-value`);
 
         if (output) {
@@ -692,10 +695,10 @@ function initialize() {
     render();
 
     console.log("Getting materials");
-    const materials = getMaterials();
-    if (materials !== undefined) {
+    const materials1 = getMaterials();
+    if (materials1 !== undefined) {
         console.log("Got materials");
-        console.log(materials);
+        console.log(materials1);
     }
 }
 
