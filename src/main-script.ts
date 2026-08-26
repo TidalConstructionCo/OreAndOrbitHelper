@@ -1,8 +1,9 @@
-import GAME_DATA from "./crafting-data.js";
+import GAME_DATA from "./crafting-data";
 const materials = GAME_DATA.materials;
 const recipes = GAME_DATA.recipes;
 const extractionRecipes = GAME_DATA.extractionRecipes;
-
+import { initialize as initializeApiKeyPage } from "./api-key.js";
+import { getMaterials } from "./api-access.js";
 const recipeChoices = new Map();
 const treeSearch = {
     value: ""
@@ -656,6 +657,7 @@ function render() {
 }
 
 function initialize() {
+    initializeApiKeyPage();
     const targetSelect = document.getElementById("target-select");
     const searchInput = document.getElementById("tree-search");
 
@@ -688,6 +690,13 @@ function initialize() {
 
     createExtractorSettings();
     render();
+
+    console.log("Getting materials");
+    const materials = getMaterials();
+    if (materials !== undefined) {
+        console.log("Got materials");
+        console.log(materials);
+    }
 }
 
 const toolButtons = document.querySelectorAll(".tool-button");
