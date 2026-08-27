@@ -5,11 +5,9 @@ import { initialize as initializeApiKeyPage } from "./api-key.js";
 import { renderCraftingTree } from "./ui/crafting-tree";
 import { buildCraftingTree } from "./domain/crafting-tree";
 import { AppState, createInitialState } from "./app/state";
-import { formatAmount, formatPercent, formatRecipe } from "./ui/formatting";
+import { renderSummary } from "./ui/summary";
+
 const state = createInitialState();
-
-
-
 
 function updateMaterialAvailability(state: AppState) {
     for (const [material, availability] of Object.entries(
@@ -26,8 +24,6 @@ function updateMaterialAvailability(state: AppState) {
         }
     }
 }
-
-
 
 function recipesProducing(material) {
     return recipes.filter(recipe =>
@@ -49,10 +45,6 @@ function getSelectedRecipe(state: AppState, material) {
 function getOutput(recipe, material) {
     return recipe.outputs.find(output => output.material === material);
 }
-
-
-
-
 
 export function buildTreeNode(
     targetMaterial,
@@ -179,124 +171,6 @@ function createExtractorSettings(state: AppState) {
     }
 }
 
-
-
-function summedRecipeUtilization(rootNode) {
-    const totals = new Map();
-
-    function visit(node) {
-        if (
-            !node.isRaw &&
-            !node.cycleDetected &&
-            node.recipe &&
-            node.utilization != null
-        ) {
-            const current = totals.get(node.recipe) ?? 0;
-            totals.set(node.recipe, current + node.utilization);
-        }
-
-        for (const child of node.children) {
-            visit(child);
-        }
-    }
-
-    visit(rootNode);
-    return totals;
-}
-
-
-function renderSummary(tree) {
-    const summary = document.getElementById("summary");
-    summary.replaceChildren();
-
-    const rawPanel = document.createElement("div");
-    rawPanel.className = "panel";
-
-    const rawTitle = document.createElement("h2");
-    rawTitle.textContent = "Raw materials per crafting cycle";
-    rawPanel.appendChild(rawTitle);
-
-    const rawList = document.createElement("ul");
-
-    for (const [material, amount] of Object.entries(tree.rawMaterials)) {
-        const item = document.createElement("li");
-        item.textContent =
-            `${formatAmount(amount)}x ${material}`;
-        rawList.appendChild(item);
-    }
-
-    if (rawList.children.length === 0) {
-        const item = document.createElement("li");
-        item.className = "muted";
-        item.textContent = "None";
-        rawList.appendChild(item);
-    }
-
-    rawPanel.appendChild(rawList);
-    summary.appendChild(rawPanel);
-
-    // New recipe utilization panel
-    const utilizationPanel = document.createElement("div");
-    utilizationPanel.className = "panel";
-
-    const utilizationTitle = document.createElement("h2");
-    utilizationTitle.textContent =
-        "Summed recipe utilization";
-    utilizationPanel.appendChild(utilizationTitle);
-
-    const utilizationList = document.createElement("ul");
-    const recipeTotals = summedRecipeUtilization(tree.root);
-
-    for (const [recipe, utilization] of recipeTotals) {
-        const item = document.createElement("li");
-
-        item.textContent =
-            `${formatPercent(utilization)}: ${formatRecipe(recipe)}`;
-
-
-        utilizationList.appendChild(item);
-    }
-
-    if (utilizationList.children.length === 0) {
-        const item = document.createElement("li");
-        item.className = "muted";
-        item.textContent = "None";
-        utilizationList.appendChild(item);
-    }
-
-    utilizationPanel.appendChild(utilizationList);
-    summary.appendChild(utilizationPanel);
-
-    const extractorPanel = document.createElement("div");
-    extractorPanel.className = "panel";
-
-    const extractorTitle = document.createElement("h2");
-    extractorTitle.textContent =
-        `Extractors needed to supply one ${tree.root.material} chain permanently`;
-    extractorPanel.appendChild(extractorTitle);
-
-    const extractorList = document.createElement("ul");
-
-    for (const requirement of tree.extractorRequirements) {
-        const item = document.createElement("li");
-        item.textContent =
-            `${formatAmount(requirement.extractors)}x ` +
-            `${requirement.material} extractor`;
-        extractorList.appendChild(item);
-    }
-
-    if (extractorList.children.length === 0) {
-        const item = document.createElement("li");
-        item.className = "muted";
-        item.textContent = "None";
-        extractorList.appendChild(item);
-    }
-
-    extractorPanel.appendChild(extractorList);
-    summary.appendChild(extractorPanel);
-}
-
-
 export function render() {
     if (state.selectedTarget) {
         const treeElement = document.getElementById("tree");
@@ -319,7 +193,10 @@ export function render() {
             });
         }
 
-        renderSummary(tree);
+        const summary = document.getElementById("summary");
+        if (summary) {
+            renderSummary(tree, summary);
+        }
     }
     updateMaterialAvailability(state);
 }
