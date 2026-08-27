@@ -4,7 +4,7 @@ const recipes = GAME_DATA.recipes;
 import { initialize as initializeApiKeyPage } from "./api-key.js";
 import { renderCraftingTree } from "./ui/crafting-tree";
 import { buildCraftingTree } from "./domain/crafting-tree";
-import { createInitialState } from "./app/state";
+import { AppState, createInitialState } from "./app/state";
 const state = createInitialState();
 // TODO: remove
 export const materialAvailability = state.materialAvailability;
@@ -29,7 +29,7 @@ function formatRecipe(recipe) {
 }
 
 
-function updateMaterialAvailability() {
+function updateMaterialAvailability(state: AppState) {
     for (const [material, availability] of Object.entries(
         state.materialAvailability
     )) {
@@ -40,7 +40,7 @@ function updateMaterialAvailability() {
         const output = document.getElementById(`${id}-value`);
 
         if (output) {
-            output.textContent = availability;
+            output.textContent = String(availability);
         }
     }
 }
@@ -170,7 +170,7 @@ export function buildTreeNode(
 
     return node;
 }
-function createExtractorSettings() {
+function createExtractorSettings(state: AppState) {
     for (const [material, availability] of Object.entries(state.materialAvailability)) {
         const id = material
             .toLowerCase()
@@ -354,7 +354,7 @@ export function render() {
 
         renderSummary(tree);
     }
-    updateMaterialAvailability();
+    updateMaterialAvailability(state);
 }
 
 function initialize() {
@@ -392,7 +392,7 @@ function initialize() {
     });
 
 
-    createExtractorSettings();
+    createExtractorSettings(state);
     render();
 
     // console.log("Getting materials");
