@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import type { TreeNode } from "../main-script";
+import type { TreeNode } from "../domain/crafting-tree";
 import type { Recipe } from "../crafting-data";
 
 function formatPercent(value: number) {
@@ -190,7 +190,7 @@ export function renderCraftingTree({
             return `${formatAmount(node.data.amount)}x · ` +
                 `${formatAmount(node.data.cycles)} cycles · ` +
                 `${formatAmount(node.data.duration)} min · ` +
-                `${formatPercent(node.data.utilization)} utilization`;
+                `${formatPercent(node.data.utilization ?? 0)} utilization`;
         });
 
 

@@ -217,7 +217,6 @@ function createExtractorSettings() {
 
         wrapper.append(label, input, output);
 
-        // const settingsContainer = document.querySelector(".extractor-settings");
         document.querySelector(".extractor-settings").appendChild(wrapper);
     }
 }
@@ -345,13 +344,11 @@ export function render() {
 
     if (target) {
         const treeElement = document.getElementById("tree");
-        const tree = buildCraftingTree({
-            recipes,
-            extractionRecipes: GAME_DATA.extractionRecipes,
-            recipeChoices,
+        const tree = buildCraftingTree(
+            GAME_DATA.extractionRecipes,
             materialAvailability,
-            targetMaterial: target,
-        });
+            target,
+        );
         if (treeElement) {
             renderCraftingTree({
                 treeElement,

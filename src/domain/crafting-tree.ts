@@ -7,6 +7,9 @@ type TreeNodeBase = {
     children: TreeNode[];
     isRaw: boolean;
     cycleDetected: boolean;
+
+    // Store utilization as a decimal:
+    // 1 = 100%, 0.5 = 50%, etc.
     utilization: number | null;
 };
 
@@ -40,41 +43,23 @@ export type CraftingTree = {
     extractorRequirements: ExtractorRequirement[];
 };
 
-type BuildTreeOptions = {
-    recipes: Recipe[];
-    extractionRecipes: Record<string, ExtractionRecipe>;
-    recipeChoices: Map<string, number>;
-    materialAvailability: Record<string, number>;
-    targetMaterial: string;
-};
 
-export function addNodeUtilization(node: TreeNode, totalDuration: number) {
-    if (
-        node.duration != null &&
-        totalDuration > 0
-    ) {
-        node.utilization = node.duration / totalDuration;
-    } else {
-        node.utilization = null;
-    }
 
-    for (const child of node.children) {
-        addNodeUtilization(child, totalDuration);
-    }
-}
 
-export function buildCraftingTree(options: BuildTreeOptions): CraftingTree {
+export function buildCraftingTree(
+    extractionRecipes: Record<string, ExtractionRecipe>,
+    materialAvailability: Record<string, number>,
+    targetMaterial: string,
+): CraftingTree {
     const rawMaterials = {};
 
     const root = buildTreeNode(
-        options.targetMaterial,
+        targetMaterial,
         undefined,
         new Set(),
         rawMaterials
     );
 
-    // Store utilization as a decimal:
-    // 1 = 100%, 0.5 = 50%, etc.
     if (root.duration > 0) {
         addNodeUtilization(root, root.duration);
     }
@@ -85,13 +70,13 @@ export function buildCraftingTree(options: BuildTreeOptions): CraftingTree {
         if (!(typeof amount === "number")) {
             continue;
         }
-        const extraction = options.extractionRecipes[material];
+        const extraction = extractionRecipes[material];
 
         if (!extraction || !root.duration) {
             continue;
         }
 
-        const availability = options.materialAvailability[material] || 5;
+        const availability = materialAvailability[material] || 5;
         const availabilityModifer = availability * 0.16 + 0.2;
 
         const extractionCycles =
@@ -115,4 +100,19 @@ export function buildCraftingTree(options: BuildTreeOptions): CraftingTree {
         rawMaterials,
         extractorRequirements
     };
+}
+
+function addNodeUtilization(node: TreeNode, totalDuration: number) {
+    if (
+        node.duration != null &&
+        totalDuration > 0
+    ) {
+        node.utilization = node.duration / totalDuration;
+    } else {
+        node.utilization = null;
+    }
+
+    for (const child of node.children) {
+        addNodeUtilization(child, totalDuration);
+    }
 }
