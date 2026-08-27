@@ -1,5 +1,4 @@
-// TODO: is that the correct recipe type?
-import { ExtractionRecipe, Recipe } from "../crafting-data";
+import type { ExtractionRecipe, Recipe } from "../crafting-data";
 import { buildTreeNode } from "../main-script";
 
 type TreeNodeBase = {
