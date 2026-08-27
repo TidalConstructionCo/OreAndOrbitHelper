@@ -240,15 +240,9 @@
         .app-layout {
             display: flex;
             min-height: 100vh;
+            align-items: stretch;
         }
 
-        .sidebar {
-            width: 220px;
-            flex-shrink: 0;
-            padding: 20px;
-            background: #1d2430;
-            color: white;
-        }
 
         .content {
             flex: 1;
@@ -283,6 +277,22 @@
             display: block;
         }
 
+        .sidebar {
+            position: sticky;
+            top: 0;
+
+            display: flex;
+            flex-direction: column;
+
+            flex: 0 0 220px;
+            box-sizing: border-box;
+            height: 100vh;
+            padding: 20px;
+
+            background: #1d2430;
+            color: white;
+        }
+
         @media (max-width: 600px) {
             .app-layout {
                 flex-direction: column;
@@ -309,11 +319,71 @@
         #keyValue {
             font-family: monospace;
         }
+
+        .reload-game-data:hover {
+            background: #3b82f6;
+        }
+
+        .reload-game-data:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        @media (max-width: 600px) {
+            .sidebar {
+                width: auto;
+                min-height: auto;
+            }
+
+            .reload-game-data {
+                width: auto;
+                margin-top: 16px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .app-layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                min-height: 100vh;
+                flex: none;
+            }
+
+            .tool-button {
+                display: inline-block;
+                width: auto;
+                margin-right: 6px;
+            }
+
+            .reload-game-data {
+                width: 100%;
+                margin-top: auto;
+                text-align: center;
+            }
+        }
+
+        #reload-game-data {
+            display: block;
+            width: 100%;
+            margin-top: auto;
+            padding: 12px;
+            border: 0;
+            border-radius: 6px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+            text-align: left;
+            font: inherit;
+        }
     </style>
 </head>
 
 <body>
-    <div class="app">
+    <div class="app-layout">
         <aside class="sidebar">
             <h2>Ore & Orbit</h2>
 
@@ -324,7 +394,17 @@
             <button class="tool-button" data-tool="another-tool">
                 Another Tool
             </button>
+
+            <button id="reload-game-data" type="button">
+                Reload Game Data
+            </button>
         </aside>
+
+        <!-- <div class="workspace">
+            <div class="global-toolbar">
+                
+            </div>
+        </div> -->
 
         <main class="content">
             <section id="crafting-tree" class="tool-panel active">
@@ -344,7 +424,6 @@
                 </div>
                 <div id="summary" class="summary"></div>
                 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-                <!-- <script src="./dist/crafting-data.js"></script> -->
                 <script type="module" src="./src/main-script.ts"></script>
             </section>
 

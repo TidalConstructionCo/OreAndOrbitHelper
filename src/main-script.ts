@@ -3,7 +3,7 @@ const recipes = GAME_DATA.recipes;
 import { initialize as initializeApiKeyPage } from "./api-key.js";
 import { renderCraftingTree } from "./ui/crafting-tree";
 import { buildCraftingTree } from "./domain/crafting-tree";
-import { AppState, createInitialState } from "./app/state";
+import { createInitialState } from "./app/state";
 import { renderSummary } from "./ui/summary";
 import { initializeToolTabs } from "./ui/tool-tabs";
 import { initializeTargetSelector } from "./ui/target-selector";
