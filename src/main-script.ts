@@ -18,7 +18,6 @@ export function render() {
             GAME_DATA.extractionRecipes,
             state.materialAvailability,
             state.selectedTarget,
-            // TODO: how to avoid passing state
             state,
             recipes
         );

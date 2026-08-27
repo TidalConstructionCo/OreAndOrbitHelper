@@ -1,4 +1,4 @@
-interface MaterialAmount {
+export interface MaterialAmount {
     material: string;
     amount: number;
 }

@@ -1,5 +1,5 @@
 import { AppState } from "../app/state";
-import type { ExtractionRecipe, Recipe } from "../crafting-data";
+import type { ExtractionRecipe, MaterialAmount, Recipe } from "../crafting-data";
 
 type TreeNodeBase = {
     material: string;
@@ -53,7 +53,7 @@ export function buildCraftingTree(
     state: AppState,
     recipes: Recipe[],
 ): CraftingTree {
-    const rawMaterials = {};
+    const rawMaterials: Record<string, number> = {};
 
     const root = buildTreeNode(
         targetMaterial,
@@ -64,28 +64,26 @@ export function buildCraftingTree(
         recipes
     );
 
-    if (root.duration && root.duration > 0) {
-        addNodeUtilization(root, root.duration);
+    const totalDuration = root.duration;
+    if (totalDuration && totalDuration > 0) {
+        addNodeUtilization(root, totalDuration);
     }
 
-    const extractorRequirements = [];
+    const extractorRequirements: ExtractorRequirement[] = [];
 
     for (const [material, amount] of Object.entries(rawMaterials)) {
-        if (!(typeof amount === "number")) {
-            continue;
-        }
         const extraction = extractionRecipes[material];
 
-        if (!extraction || !root.duration) {
+        if (!extraction || !totalDuration) {
             continue;
         }
 
         const availability = materialAvailability[material] || 5;
-        const availabilityModifer = availability * 0.16 + 0.2;
+        const availabilityModifier = availability * 0.16 + 0.2;
 
         const extractionCycles =
             (amount * extraction.duration) /
-            (extraction.amount * availabilityModifer * root.duration);
+            (extraction.amount * availabilityModifier * totalDuration);
 
         const extractors =
             Math.ceil(extractionCycles * 1000) / 1000;
@@ -107,10 +105,7 @@ export function buildCraftingTree(
 }
 
 function addNodeUtilization(node: TreeNode, totalDuration: number) {
-    if (
-        node.duration != null &&
-        totalDuration > 0
-    ) {
+    if (node.duration != null && totalDuration > 0) {
         node.utilization = node.duration / totalDuration;
     } else {
         node.utilization = null;
@@ -121,17 +116,11 @@ function addNodeUtilization(node: TreeNode, totalDuration: number) {
     }
 }
 
-function recipesProducing(material: string, recipes: Recipe[]) {
-    return recipes.filter(recipe =>
-        recipe.outputs.some(output => output.material === material)
-    );
-}
-
-function getSelectedRecipe(state: AppState, material: string, recipes: Recipe[]) {
-    const choices = recipesProducing(material, recipes);
+function getSelectedRecipe(state: AppState, material: string, recipes: Recipe[]): Recipe | undefined {
+    const choices = recipes.filter(recipe => recipe.outputs.some(output => output.material === material && output.amount > 0));
 
     if (choices.length === 0) {
-        return null;
+        return undefined;
     }
 
     const selectedIndex = state.recipeChoices.get(material) ?? 0;
@@ -139,7 +128,7 @@ function getSelectedRecipe(state: AppState, material: string, recipes: Recipe[])
 }
 
 
-function getOutput(recipe: Recipe, material: string) {
+function getOutput(recipe: Recipe, material: string): MaterialAmount | undefined {
     return recipe.outputs.find(output => output.material === material);
 }
 
@@ -158,17 +147,16 @@ function buildTreeNode(
     if (!recipe) {
         const amount = requiredAmount ?? 1;
 
-        rawMaterials[targetMaterial] =
-            (rawMaterials[targetMaterial] ?? 0) + amount;
-
+        rawMaterials[targetMaterial] = (rawMaterials[targetMaterial] ?? 0) + amount;
         return {
             material: targetMaterial,
             amount,
-            cycles: null,
-            duration: null,
             children: [],
             isRaw: true,
-            cycleDetected: false
+            cycleDetected: false,
+            utilization: null,
+            cycles: null,
+            duration: null,
         };
     }
 
@@ -177,11 +165,13 @@ function buildTreeNode(
         return {
             material: targetMaterial,
             amount: requiredAmount ?? 0,
-            cycles: null,
-            duration: null,
             children: [],
             isRaw: false,
-            cycleDetected: true
+            cycleDetected: true,
+            utilization: null,
+            cycles: null,
+            duration: null,
+            recipe,
         };
     }
 
