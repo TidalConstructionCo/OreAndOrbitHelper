@@ -4,20 +4,11 @@ const recipes = GAME_DATA.recipes;
 import { initialize as initializeApiKeyPage } from "./api-key.js";
 import { renderCraftingTree } from "./ui/crafting-tree";
 import { buildCraftingTree } from "./domain/crafting-tree";
-const recipeChoices: Map<string, number> = new Map();
-const treeSearch = {
-    value: ""
-};
+import { createInitialState } from "./app/state";
+const state = createInitialState();
+// TODO: remove
+export const materialAvailability = state.materialAvailability;
 
-export const materialAvailability = {
-    "Iron Ore": 5,
-    "Carbon Ore": 5,
-    "Hydrogen": 5,
-    "Copper Ore": 5,
-    "Rare Earth Ore": 5,
-    "Silica Sand": 5,
-    "Saline Brine": 5,
-};
 
 
 
@@ -40,7 +31,7 @@ function formatRecipe(recipe) {
 
 function updateMaterialAvailability() {
     for (const [material, availability] of Object.entries(
-        materialAvailability
+        state.materialAvailability
     )) {
         const id = material
             .toLowerCase()
@@ -78,7 +69,7 @@ function getSelectedRecipe(material) {
         return null;
     }
 
-    const selectedIndex = recipeChoices.get(material) ?? 0;
+    const selectedIndex = state.recipeChoices.get(material) ?? 0;
     return choices[selectedIndex] ?? choices[0];
 }
 
@@ -180,7 +171,7 @@ export function buildTreeNode(
     return node;
 }
 function createExtractorSettings() {
-    for (const [material, availability] of Object.entries(materialAvailability)) {
+    for (const [material, availability] of Object.entries(state.materialAvailability)) {
         const id = material
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, "-")
@@ -209,7 +200,7 @@ function createExtractorSettings() {
         input.addEventListener("input", (event) => {
             const value = Number(event.target.value);
 
-            materialAvailability[material] = value;
+            state.materialAvailability[material] = value;
             output.textContent = value;
 
             render();
@@ -340,24 +331,22 @@ function renderSummary(tree) {
 
 
 export function render() {
-    const target = document.getElementById("target-select").value;
-
-    if (target) {
+    if (state.selectedTarget) {
         const treeElement = document.getElementById("tree");
         const tree = buildCraftingTree(
             GAME_DATA.extractionRecipes,
-            materialAvailability,
-            target,
+            state.materialAvailability,
+            state.selectedTarget,
         );
         if (treeElement) {
             renderCraftingTree({
                 treeElement,
                 rootNode: tree.root,
-                recipeChoices,
-                searchText: treeSearch.value,
+                recipeChoices: state.recipeChoices,
+                searchText: state.searchText,
                 recipes: GAME_DATA.recipes,
                 onRecipeChoiceChanged: (material, recipeIndex) => {
-                    recipeChoices.set(material, recipeIndex);
+                    state.recipeChoices.set(material, recipeIndex);
                     render();
                 }
             });
@@ -380,12 +369,15 @@ function initialize() {
         targetSelect.appendChild(option);
     }
 
-    targetSelect.value = "Extractor Kit";
+    targetSelect.value = state.selectedTarget;
 
-    targetSelect.addEventListener("change", render);
+    targetSelect.addEventListener("change", event => {
+        state.selectedTarget = event.target.value;
+        render();
+    });
 
     searchInput.addEventListener("input", event => {
-        treeSearch.value = event.target.value;
+        state.searchText = event.target.value;
         render();
     });
 
