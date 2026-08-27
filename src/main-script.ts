@@ -1,16 +1,15 @@
 import GAME_DATA from "./crafting-data";
 const materials = GAME_DATA.materials;
 const recipes = GAME_DATA.recipes;
-const extractionRecipes = GAME_DATA.extractionRecipes;
 import { initialize as initializeApiKeyPage } from "./api-key.js";
-import { getMaterials, Recipe } from "./api-access.js";
 import { renderCraftingTree } from "./ui/crafting-tree";
+import { buildCraftingTree } from "./domain/crafting-tree";
 const recipeChoices: Map<string, number> = new Map();
 const treeSearch = {
     value: ""
 };
 
-const materialAvailability = {
+export const materialAvailability = {
     "Iron Ore": 5,
     "Carbon Ore": 5,
     "Hydrogen": 5,
@@ -20,7 +19,7 @@ const materialAvailability = {
     "Saline Brine": 5,
 };
 
-function addNodeUtilization(node, totalDuration) {
+export function addNodeUtilization(node, totalDuration) {
     if (
         node.duration != null &&
         totalDuration > 0
@@ -100,57 +99,6 @@ function getOutput(recipe, material) {
     return recipe.outputs.find(output => output.material === material);
 }
 
-function buildCraftingTree(targetMaterial) {
-    const rawMaterials = {};
-
-    const root = buildTreeNode(
-        targetMaterial,
-        null,
-        new Set(),
-        rawMaterials
-    );
-
-    // Store utilization as a decimal:
-    // 1 = 100%, 0.5 = 50%, etc.
-    if (root.duration > 0) {
-        addNodeUtilization(root, root.duration);
-    }
-
-    const extractorRequirements = [];
-
-    for (const [material, amount] of Object.entries(rawMaterials)) {
-        const extraction = extractionRecipes[material];
-
-        if (!extraction || !root.duration) {
-            continue;
-        }
-
-        const availability = materialAvailability[material] || 5;
-        const availabilityModifer = availability * 0.16 + 0.2;
-
-        const extractionCycles =
-            (amount * extraction.duration) /
-            (extraction.amount * availabilityModifer * root.duration);
-
-        const extractors =
-            Math.ceil(extractionCycles * 1000) / 1000;
-
-        extractorRequirements.push({
-            material,
-            amount,
-            extractors,
-            extractionCyclesPerExtractor: extractionCycles,
-            extractionDuration: extraction.duration
-        });
-    }
-
-    return {
-        root,
-        rawMaterials,
-        extractorRequirements
-    };
-}
-
 function formatPercent(value) {
     if (value == null) {
         return "";
@@ -159,34 +107,11 @@ function formatPercent(value) {
     return `${formatAmount(value * 100)}%`;
 }
 
-type TreeNodeBase = {
-    material: string;
-    amount: number;
-    children: TreeNode[];
-    isRaw: boolean;
-    cycleDetected: boolean;
-};
-
-type RecipeTreeNode = TreeNodeBase & {
-    isRaw: false;
-    cycles: number;
-    duration: number;
-    recipe: Recipe;
-};
-
-type RawTreeNode = TreeNodeBase & {
-    isRaw: true;
-    cycles: null;
-    duration: null;
-    recipe?: never;
-};
-
-export type TreeNode = RecipeTreeNode | RawTreeNode;
 
 
-function buildTreeNode(
+export function buildTreeNode(
     targetMaterial,
-    requiredAmount: number,
+    requiredAmount: number | undefined,
     visited,
     rawMaterials
 ): TreeNode {
@@ -433,7 +358,13 @@ export function render() {
 
     if (target) {
         const treeElement = document.getElementById("tree");
-        const tree = buildCraftingTree(target);
+        const tree = buildCraftingTree({
+            recipes,
+            extractionRecipes: GAME_DATA.extractionRecipes,
+            recipeChoices,
+            materialAvailability,
+            targetMaterial: target,
+        });
         if (treeElement) {
             renderCraftingTree({
                 treeElement,

@@ -10,7 +10,7 @@ export interface Recipe {
     outputs: MaterialAmount[];
 }
 
-interface ExtractionRecipe {
+export interface ExtractionRecipe {
     amount: number;
     duration: number;
 }
