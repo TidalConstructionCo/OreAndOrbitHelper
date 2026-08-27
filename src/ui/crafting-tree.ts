@@ -1,21 +1,11 @@
 import * as d3 from "d3";
 import type { TreeNode } from "../domain/crafting-tree";
 import type { Recipe } from "../crafting-data";
+import { formatAmount, formatPercent } from "./formatting";
 
-function formatPercent(value: number) {
-    return `${formatAmount(value * 100)}%`;
-}
 
-function formatAmount(amount: number) {
-    if (Number.isInteger(amount)) {
-        return String(amount);
-    }
 
-    return amount
-        .toFixed(2)
-        .replace(/0+$/, "")
-        .replace(/\.$/, "");
-}
+
 
 type RenderCraftingTreeOptions = {
     treeElement: HTMLElement;

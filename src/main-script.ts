@@ -5,23 +5,10 @@ import { initialize as initializeApiKeyPage } from "./api-key.js";
 import { renderCraftingTree } from "./ui/crafting-tree";
 import { buildCraftingTree } from "./domain/crafting-tree";
 import { AppState, createInitialState } from "./app/state";
+import { formatAmount, formatPercent, formatRecipe } from "./ui/formatting";
 const state = createInitialState();
 
-function formatRecipe(recipe) {
-    const inputs = recipe.inputs
-        .map(input =>
-            `${formatAmount(input.amount)}x ${input.material}`
-        )
-        .join(" + ");
 
-    const outputs = recipe.outputs
-        .map(output =>
-            `${formatAmount(output.amount)}x ${output.material}`
-        )
-        .join(" + ");
-
-    return `[${inputs}] => [${outputs}]`;
-}
 
 
 function updateMaterialAvailability(state: AppState) {
@@ -40,16 +27,7 @@ function updateMaterialAvailability(state: AppState) {
     }
 }
 
-function formatAmount(amount) {
-    if (Number.isInteger(amount)) {
-        return String(amount);
-    }
 
-    return amount
-        .toFixed(2)
-        .replace(/0+$/, "")
-        .replace(/\.$/, "");
-}
 
 function recipesProducing(material) {
     return recipes.filter(recipe =>
@@ -72,13 +50,7 @@ function getOutput(recipe, material) {
     return recipe.outputs.find(output => output.material === material);
 }
 
-function formatPercent(value) {
-    if (value == null) {
-        return "";
-    }
 
-    return `${formatAmount(value * 100)}%`;
-}
 
 
 
