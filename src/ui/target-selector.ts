@@ -20,9 +20,14 @@ export function initializeTargetSelector({
         select.appendChild(option);
     }
 
-    select.value = selectedTarget;
+    // Preserve the selected target when it still exists.
+    if (materials.includes(selectedTarget)) {
+        select.value = selectedTarget;
+    } else {
+        select.selectedIndex = 0;
+    }
 
-    select.addEventListener("change", () => {
+    select.onchange = () => {
         onTargetChanged(select.value);
-    });
+    };
 }

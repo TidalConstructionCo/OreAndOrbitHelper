@@ -186,3 +186,37 @@ export async function getMaterials(): Promise<MaterialsResponse | undefined> {
     }
     return result.data;
 }
+
+export async function getRecipes(): Promise<RecipesResponse | undefined> {
+    const apiKey = getApiKey();
+    if (apiKey === undefined) {
+        return undefined;
+    }
+
+
+    const response = await fetch(
+        `${baseUri}recipes`,
+        {
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+                Accept: "application/json",
+            },
+        }
+    );
+
+    if (!response.ok) {
+        // throw new Error(`Request failed: ${response.status}`);
+        console.log(`Failed to fetch recipes: ${response.status} ${response.statusText}`);
+        return undefined;
+    }
+
+    const recipes: unknown = await response.json();
+    // console.log(materials);
+
+    const result = RecipesResponseSchema.safeParse(recipes);
+    if (!result.success) {
+        console.log(result.error.issues);
+        return undefined;
+    }
+    return result.data;
+}
