@@ -111,6 +111,48 @@ const CacheSchema = z.object({
 type Cache = z.infer<typeof CacheSchema>;
 
 
+// function readCache(): Cache {
+//   const stored = localStorage.getItem(CACHE_KEY);
+
+//   if (!stored) {
+//     return {
+//       timestamp: 0,
+//     };
+//   }
+
+//   try {
+//     const parsed: unknown = JSON.parse(stored);
+//     const result = CacheSchema.safeParse(parsed);
+
+//     if (!result.success) {
+//       localStorage.removeItem(CACHE_KEY);
+
+//       return {
+//         timestamp: 0,
+//       };
+//     }
+
+//     return result.data;
+//   } catch {
+//     localStorage.removeItem(CACHE_KEY);
+
+//     return {
+//       timestamp: 0,
+//     };
+//   }
+// }
+
+// function writeCache(cache: Cache): void {
+//   localStorage.setItem(
+//     CACHE_KEY,
+//     JSON.stringify(cache)
+//   );
+// }
+
+// function isCacheFresh(timestamp: number): boolean {
+//   return Date.now() - timestamp < CACHE_DURATION_MS;
+// }
+
 export async function getMaterials(): Promise<MaterialsResponse | undefined> {
     const apiKey = getApiKey();
     if (apiKey === undefined) {

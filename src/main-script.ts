@@ -285,35 +285,6 @@ function createExtractorSettings() {
     }
 }
 
-// function createRecipeSelector(material) {
-//     const choices = recipesProducing(material);
-
-//     if (choices.length <= 1) {
-//         return null;
-//     }
-
-//     const select = document.createElement("select");
-//     select.className = "recipe-choice";
-
-//     choices.forEach((recipe, index) => {
-//         const option = document.createElement("option");
-
-//         option.value = index;
-//         option.textContent =
-//             `${recipe.name} — ${recipe.duration} minutes`;
-
-//         select.appendChild(option);
-//     });
-
-//     select.value = recipeChoices.get(material) ?? 0;
-
-//     select.addEventListener("change", event => {
-//         recipeChoices.set(material, Number(event.target.value));
-//         render();
-//     });
-
-//     return select;
-// }
 
 function getTreeSearchQuery() {
     return treeSearch.value.trim().toLowerCase();
@@ -694,12 +665,12 @@ function initialize() {
     createExtractorSettings();
     render();
 
-    console.log("Getting materials");
-    const materials1 = getMaterials();
-    if (materials1 !== undefined) {
-        console.log("Got materials");
-        console.log(materials1);
-    }
+    // console.log("Getting materials");
+    // const materials1 = getMaterials();
+    // if (materials1 !== undefined) {
+    //     console.log("Got materials");
+    //     console.log(materials1);
+    // }
 }
 
 const toolButtons = document.querySelectorAll(".tool-button");
