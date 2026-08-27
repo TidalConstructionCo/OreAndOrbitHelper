@@ -3,7 +3,7 @@ interface MaterialAmount {
     amount: number;
 }
 
-interface Recipe {
+export interface Recipe {
     name: string;
     duration: number;
     inputs: MaterialAmount[];

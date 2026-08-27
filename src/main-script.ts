@@ -430,10 +430,26 @@ function renderSummary(tree) {
 
 export function render() {
     const target = document.getElementById("target-select").value;
-    const tree = buildCraftingTree(target);
 
-    renderCraftingTree(tree.root, recipeChoices, treeSearch.value);
-    renderSummary(tree);
+    if (target) {
+        const treeElement = document.getElementById("tree");
+        const tree = buildCraftingTree(target);
+        if (treeElement) {
+            renderCraftingTree({
+                treeElement,
+                rootNode: tree.root,
+                recipeChoices,
+                searchText: treeSearch.value,
+                recipes: GAME_DATA.recipes,
+                onRecipeChoiceChanged: (material, recipeIndex) => {
+                    recipeChoices.set(material, recipeIndex);
+                    render();
+                }
+            });
+        }
+
+        renderSummary(tree);
+    }
     updateMaterialAvailability();
 }
 

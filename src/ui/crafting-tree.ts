@@ -1,6 +1,6 @@
 import * as d3 from "d3";
-import { render, TreeNode } from "../main-script";
-import GAME_DATA from "../crafting-data";
+import type { TreeNode } from "../main-script";
+import type { Recipe } from "../crafting-data";
 
 function formatPercent(value: number) {
     return `${formatAmount(value * 100)}%`;
@@ -17,9 +17,26 @@ function formatAmount(amount: number) {
         .replace(/\.$/, "");
 }
 
-export function renderCraftingTree(rootNode: TreeNode, recipeChoices: Map<string, number>, searchText: string) {
-    const treeElement = document.getElementById("tree");
-    if (!treeElement) { return; }
+type RenderCraftingTreeOptions = {
+    treeElement: HTMLElement;
+    rootNode: TreeNode;
+    recipeChoices: ReadonlyMap<string, number>;
+    searchText: string;
+    recipes: Recipe[];
+    onRecipeChoiceChanged: (
+        material: string,
+        recipeIndex: number
+    ) => void;
+};
+
+export function renderCraftingTree({
+    treeElement,
+    rootNode,
+    recipeChoices,
+    searchText,
+    recipes,
+    onRecipeChoiceChanged
+}: RenderCraftingTreeOptions) {
     treeElement.replaceChildren();
 
     const treeWidth = Math.max(treeElement.clientWidth, 320);
@@ -136,7 +153,7 @@ export function renderCraftingTree(rootNode: TreeNode, recipeChoices: Map<string
                 return 84;
             }
 
-            return getRecipeChoicesCount(node.data.material) > 1
+            return getRecipeChoicesCount(recipes, node.data.material) > 1
                 ? 115
                 : 84;
         })
@@ -181,7 +198,7 @@ export function renderCraftingTree(rootNode: TreeNode, recipeChoices: Map<string
         .filter(node =>
             !node.data.isRaw &&
             !node.data.cycleDetected &&
-            getRecipeChoicesCount(node.data.material) > 1
+            getRecipeChoicesCount(recipes, node.data.material) > 1
         )
         .append("foreignObject")
         .attr("x", -105)
@@ -192,16 +209,16 @@ export function renderCraftingTree(rootNode: TreeNode, recipeChoices: Map<string
         .on("mousedown", event => event.stopPropagation())
         .on("click", event => event.stopPropagation())
         .on("change", function (event, node) {
-            recipeChoices.set(
-                node.data.material,
-                Number(event.target.value)
-            );
+            const select = event.currentTarget as HTMLSelectElement;
 
-            render();
+            onRecipeChoiceChanged(
+                node.data.material,
+                Number(select.value)
+            );
         })
         .each(function (node) {
             const select = d3.select(this);
-            const choices = recipesProducing(node.data.material);
+            const choices = recipesProducing(recipes, node.data.material);
             const selectedIndex =
                 recipeChoices.get(node.data.material) ?? 0;
 
@@ -219,28 +236,22 @@ export function renderCraftingTree(rootNode: TreeNode, recipeChoices: Map<string
                 );
         });
 }
-function getTreeSearchQuery(searchText: string) {
+function getTreeSearchQuery(searchText: string): string {
     return searchText.trim().toLowerCase();
 }
 
-function nodeMatchesSearch(node, searchText: string) {
-    const query = getTreeSearchQuery(searchText);
-
-    if (!query) {
-        return false;
-    }
-
-    return node.data.material.toLowerCase().includes(query);
+function nodeMatchesSearch(node: d3.HierarchyNode<TreeNode>, searchQuery: string) {
+    return node.data.material.toLowerCase().includes(searchQuery);
 }
 
 
 
-function getRecipeChoicesCount(material) {
-    return recipesProducing(material).length;
+function getRecipeChoicesCount(recipes: Recipe[], material: string): number {
+    return recipesProducing(recipes, material).length;
 }
-function recipesProducing(material) {
+
+function recipesProducing(recipes: Recipe[], material: string): Recipe[] {
     return recipes.filter(recipe =>
         recipe.outputs.some(output => output.material === material)
     );
 }
-const recipes = GAME_DATA.recipes;
