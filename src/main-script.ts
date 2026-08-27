@@ -6,11 +6,6 @@ import { renderCraftingTree } from "./ui/crafting-tree";
 import { buildCraftingTree } from "./domain/crafting-tree";
 import { AppState, createInitialState } from "./app/state";
 const state = createInitialState();
-// TODO: remove
-export const materialAvailability = state.materialAvailability;
-
-
-
 
 function formatRecipe(recipe) {
     const inputs = recipe.inputs
@@ -62,7 +57,7 @@ function recipesProducing(material) {
     );
 }
 
-function getSelectedRecipe(material) {
+function getSelectedRecipe(state: AppState, material) {
     const choices = recipesProducing(material);
 
     if (choices.length === 0) {
@@ -93,7 +88,7 @@ export function buildTreeNode(
     visited,
     rawMaterials
 ): TreeNode {
-    const recipe = getSelectedRecipe(targetMaterial);
+    const recipe = getSelectedRecipe(state, targetMaterial);
 
     // No crafting recipe: this is a raw material.
     if (!recipe) {
