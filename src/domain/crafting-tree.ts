@@ -1,6 +1,5 @@
 import { AppState } from "../app/state";
 import type { ExtractionRecipe, Recipe } from "../crafting-data";
-// import { buildTreeNode } from "../main-script";
 
 type TreeNodeBase = {
     material: string;

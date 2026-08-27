@@ -11,27 +11,6 @@ import { renderExtractorSettings } from "./ui/extractor-settings";
 
 const state = createInitialState();
 
-// TODO: extract to utils
-export function getElementIdForMaterial(material: string) {
-    material
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")
-}
-
-function updateMaterialAvailability(state: AppState) {
-    for (const [material, availability] of Object.entries(
-        state.materialAvailability
-    )) {
-        const id = getElementIdForMaterial(material);
-        const output = document.getElementById(`${id}-value`);
-
-        if (output) {
-            output.textContent = String(availability);
-        }
-    }
-}
-
 export function render() {
     if (state.selectedTarget) {
         const treeElement = document.getElementById("tree");
@@ -62,7 +41,6 @@ export function render() {
             renderSummary(tree, summary);
         }
     }
-    updateMaterialAvailability(state);
 }
 
 function initialize() {

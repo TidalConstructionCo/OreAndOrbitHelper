@@ -1,4 +1,4 @@
-import { getElementIdForMaterial } from "../main-script";
+import { getElementIdForMaterial } from "./utils";
 
 export function renderMaterialAvailability(
     availability: Record<string, number>
