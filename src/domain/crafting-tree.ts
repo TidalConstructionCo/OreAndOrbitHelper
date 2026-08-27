@@ -1,6 +1,6 @@
 // TODO: is that the correct recipe type?
 import { ExtractionRecipe, Recipe } from "../crafting-data";
-import { addNodeUtilization, buildTreeNode } from "../main-script";
+import { buildTreeNode } from "../main-script";
 
 type TreeNodeBase = {
     material: string;
@@ -8,6 +8,7 @@ type TreeNodeBase = {
     children: TreeNode[];
     isRaw: boolean;
     cycleDetected: boolean;
+    utilization: number | null;
 };
 
 type RecipeTreeNode = TreeNodeBase & {
@@ -47,6 +48,21 @@ type BuildTreeOptions = {
     materialAvailability: Record<string, number>;
     targetMaterial: string;
 };
+
+export function addNodeUtilization(node: TreeNode, totalDuration: number) {
+    if (
+        node.duration != null &&
+        totalDuration > 0
+    ) {
+        node.utilization = node.duration / totalDuration;
+    } else {
+        node.utilization = null;
+    }
+
+    for (const child of node.children) {
+        addNodeUtilization(child, totalDuration);
+    }
+}
 
 export function buildCraftingTree(options: BuildTreeOptions): CraftingTree {
     const rawMaterials = {};

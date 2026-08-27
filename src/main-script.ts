@@ -19,20 +19,7 @@ export const materialAvailability = {
     "Saline Brine": 5,
 };
 
-export function addNodeUtilization(node, totalDuration) {
-    if (
-        node.duration != null &&
-        totalDuration > 0
-    ) {
-        node.utilization = node.duration / totalDuration;
-    } else {
-        node.utilization = null;
-    }
 
-    for (const child of node.children) {
-        addNodeUtilization(child, totalDuration);
-    }
-}
 
 function formatRecipe(recipe) {
     const inputs = recipe.inputs
