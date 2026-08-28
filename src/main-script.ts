@@ -1,5 +1,5 @@
 import GAME_DATA, { ExtractionRecipe } from './crafting-data';
-import { getApiKey, initialize as initializeApiKeyPage } from './api-key.js';
+import { initialize as initializeApiKeyPage } from './api-key.js';
 import { renderCraftingTree } from './ui/crafting-tree';
 import { buildCraftingTree } from './domain/crafting-tree';
 import { createInitialState } from './app/state';
