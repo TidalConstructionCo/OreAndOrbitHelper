@@ -1,13 +1,11 @@
 const STORAGE_KEY = "apiKey";
-
+const VISIBLE_CHARACTERS = 4;
 
 export function getApiKey(): string | undefined {
     return localStorage.getItem(STORAGE_KEY) ?? undefined;
 }
 
 export function initialize(): void {
-    const VISIBLE_CHARACTERS = 4;
-
     const form = document.querySelector<HTMLFormElement>("#apiKeyForm");
     const input = document.querySelector<HTMLInputElement>("#apiKeyInput");
     const storedKeyContainer =

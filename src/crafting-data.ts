@@ -1,16 +1,16 @@
-interface MaterialAmount {
+export interface MaterialAmount {
     material: string;
     amount: number;
 }
 
-interface Recipe {
+export interface Recipe {
     name: string;
     duration: number;
     inputs: MaterialAmount[];
     outputs: MaterialAmount[];
 }
 
-interface ExtractionRecipe {
+export interface ExtractionRecipe {
     amount: number;
     duration: number;
 }
