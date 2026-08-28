@@ -379,6 +379,19 @@
             text-align: left;
             font: inherit;
         }
+
+        .tool-unavailable {
+            padding: 2rem;
+            max-width: 40rem;
+        }
+
+        .tool-unavailable h1 {
+            margin-top: 0;
+        }
+
+        .tool-content[hidden] {
+            display: none;
+        }
     </style>
 </head>
 
@@ -391,8 +404,8 @@
                 Crafting Tree
             </button>
 
-            <button class="tool-button" data-tool="another-tool">
-                Another Tool
+            <button class="tool-button" data-tool="settings">
+                Settings
             </button>
 
             <button id="reload-game-data" type="button">
@@ -408,26 +421,36 @@
 
         <main class="content">
             <section id="crafting-tree" class="tool-panel active">
-                <h1>Crafting Tree</h1>
-                <div class="controls">
-                    <label for="target-select">Target:</label>
-                    <select id="target-select"></select>
-
-                    <label for="tree-search">Search:</label>
-                    <input id="tree-search" type="search" placeholder="Search materials..." autocomplete="off">
+                <div class="tool-unavailable" hidden>
+                    <h1>Configuration required</h1>
+                    <p>
+                        Enter your API key in the Settings tab, click
+                        <strong>Save</strong>, then click
+                        <strong>Reload Game Data</strong>.
+                    </p>
                 </div>
+                <div class="tool-content">
+                    <h1>Crafting Tree</h1>
+                    <div class="controls">
+                        <label for="target-select">Target:</label>
+                        <select id="target-select"></select>
 
-                <div id="tree" class="tree"></div>
+                        <label for="tree-search">Search:</label>
+                        <input id="tree-search" type="search" placeholder="Search materials..." autocomplete="off">
+                    </div>
 
-                <div class="extractor-settings">
-                    <h2>Material Abundance</h2>
+                    <div id="tree" class="tree"></div>
+
+                    <div class="extractor-settings">
+                        <h2>Material Abundance</h2>
+                    </div>
+                    <div id="summary" class="summary"></div>
                 </div>
-                <div id="summary" class="summary"></div>
                 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
                 <script type="module" src="./src/main-script.ts"></script>
             </section>
 
-            <section id="another-tool" class="tool-panel">
+            <section id="settings" class="tool-panel">
                 <h1>Settings</h1>
                 <form id="apiKeyForm">
                     <input id="apiKeyInput" type="password" placeholder="Enter your API key" autocomplete="off"

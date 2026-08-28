@@ -1,5 +1,5 @@
 import GAME_DATA, { ExtractionRecipe } from "./crafting-data";
-import { initialize as initializeApiKeyPage } from "./api-key.js";
+import { getApiKey, initialize as initializeApiKeyPage } from "./api-key.js";
 import { renderCraftingTree } from "./ui/crafting-tree";
 import { buildCraftingTree } from "./domain/crafting-tree";
 import { createInitialState } from "./app/state";
@@ -12,7 +12,45 @@ import { CACHE_KEYS, loadCache, saveToCache } from "./cache";
 
 const state = createInitialState();
 
+let hasMaterialsData = false;
+let hasRecipesData = false;
+let hasExtractionData = false;
+
+function isGameDataReady(): boolean {
+    return (hasMaterialsData && hasRecipesData && hasExtractionData); // || getApiKey() !== undefined;
+}
+
+function renderToolAvailability(): void {
+    const configurationPanel = document.getElementById("configuration");
+
+    document.querySelectorAll<HTMLElement>(".tool-panel").forEach(panel => {
+        if (panel === configurationPanel) {
+            return;
+        }
+
+        const unavailableMessage =
+            panel.querySelector<HTMLElement>(".tool-unavailable");
+
+        const toolContent =
+            panel.querySelector<HTMLElement>(".tool-content");
+
+        if (!unavailableMessage || !toolContent) {
+            return;
+        }
+
+        const ready = isGameDataReady();
+
+        unavailableMessage.hidden = ready;
+        toolContent.hidden = !ready;
+    });
+}
+
 export function render() {
+    renderToolAvailability();
+    if (!isGameDataReady()) {
+        return;
+    }
+
     if (state.selectedTarget) {
         const treeElement = document.getElementById("tree");
         const tree = buildCraftingTree(
@@ -108,14 +146,17 @@ function initialize() {
     const cachedMaterials = loadCache(CACHE_KEYS.materials, MaterialsResponseSchema);
     if (cachedMaterials) {
         loadMaterials(cachedMaterials.data);
+        hasMaterialsData = true;
     }
     const cachedRecipes = loadCache(CACHE_KEYS.recipes, RecipesResponseSchema);
     if (cachedRecipes) {
         loadRecipes(cachedRecipes.data);
+        hasRecipesData = true;
     }
     const cachedExtraction = loadCache(CACHE_KEYS.locations, ExtractionResponseSchema);
     if (cachedExtraction) {
         loadExtraction(cachedExtraction.data);
+        hasExtractionData = true;
     }
 
     // TODO: rename
@@ -129,7 +170,6 @@ function initialize() {
             updateMaterialsButton.disabled = true;
 
             try {
-                // TODO: maybe return if the update was successful
                 await updateGameData();
                 refreshAllDisplays();
             } finally {
@@ -207,6 +247,7 @@ async function updateGameData() {
     if (materialApiResult) {
         loadMaterials(materialApiResult);
         saveToCache(CACHE_KEYS.materials, materialApiResult);
+        hasMaterialsData = true;
     }
     else {
         alert("Failed to fetch API data. Try again later (5+ minutes from now).");
@@ -217,11 +258,13 @@ async function updateGameData() {
     if (recipeApiResult) {
         loadRecipes(recipeApiResult);
         saveToCache(CACHE_KEYS.recipes, recipeApiResult);
+        hasRecipesData = true;
     }
 
     const extractionApiResult = await getExtraction();
     if (extractionApiResult) {
         loadExtraction(extractionApiResult);
         saveToCache(CACHE_KEYS.locations, extractionApiResult);
+        hasExtractionData = true;
     }
 }
