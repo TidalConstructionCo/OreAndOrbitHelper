@@ -1,4 +1,4 @@
-import GAME_DATA from "./crafting-data";
+import GAME_DATA, { ExtractionRecipe } from "./crafting-data";
 import { initialize as initializeApiKeyPage } from "./api-key.js";
 import { renderCraftingTree } from "./ui/crafting-tree";
 import { buildCraftingTree } from "./domain/crafting-tree";
@@ -7,7 +7,7 @@ import { renderSummary } from "./ui/summary";
 import { initializeToolTabs } from "./ui/tool-tabs";
 import { initializeTargetSelector } from "./ui/target-selector";
 import { renderExtractorSettings } from "./ui/extractor-settings";
-import { getMaterials, getRecipes } from "./api-access";
+import { getExtraction, getMaterials, getRecipes } from "./api-access";
 
 const state = createInitialState();
 
@@ -47,6 +47,8 @@ export function render() {
         if (summary) {
             renderSummary(tree, summary);
         }
+
+        initializeExtractorSettings();
     }
 }
 
@@ -70,10 +72,12 @@ function initializeTargetSelect(): void {
 function initializeExtractorSettings(): void {
     const extractorSettings =
         document.querySelector<HTMLElement>(".extractor-settings");
+    console.log("initializingExtractor");
     if (!extractorSettings) {
         return;
     }
 
+    console.log()
     renderExtractorSettings({
         container: extractorSettings,
         materials: Object.keys(state.materialAvailability),
@@ -153,8 +157,6 @@ async function updateGameData() {
     if (materialApiResult) {
         // TODO: set cache
         GAME_DATA.materials = materialApiResult.data.map(r => r.id);
-        // GAME_DATA.materials = materialApiResult.data.map(r => r.name);
-        alert(GAME_DATA.materials);
     }
     else {
         alert("failed");
@@ -177,39 +179,26 @@ async function updateGameData() {
                 name: r.id,
             };
         });
-        alert(GAME_DATA.recipes);
-        console.table(
-            GAME_DATA.recipes.map(recipe => ({
-                name: recipe.name,
-                inputs: JSON.stringify(recipe.inputs),
-                outputs: JSON.stringify(recipe.outputs),
-                duration: recipe.duration
-            }))
-        );
     }
     else {
         alert("failed");
     }
 
-    // export interface Recipe {
-    //     name: string;
-    //     duration: number;
-    //     inputs: MaterialAmount[];
-    //     outputs: MaterialAmount[];
-    // }
-
-    //     export interface MaterialAmount {
-    //     material: string;
-    //     amount: number;
-    // }
-
-    // const materialApiResult = await getMaterials();
-    // if (materialApiResult) {
-    //     // TODO: set cache
-    //     GAME_DATA.materials = materialApiResult.data.map(r => r.name);
-    //     alert(GAME_DATA.materials);
-    // }
-    // else {
-    //     alert("failed");
-    // }
+    const extractionApiResult = await getExtraction();
+    if (extractionApiResult) {
+        // TODO: set cache
+        const newExtraction: Record<string, ExtractionRecipe> = {};
+        for (const recipe of extractionApiResult.data) {
+            newExtraction[recipe.material] = { amount: recipe.units_per_batch, duration: recipe.batch_minutes };
+        }
+        GAME_DATA.extractionRecipes = newExtraction;
+        alert(GAME_DATA.extractionRecipes);
+        const newAvailability: Record<string, number> = Object.fromEntries(extractionApiResult.data.map(res => [res.material, state.materialAvailability[res.material] ?? 5]));
+        state.materialAvailability = newAvailability;
+        console.log(JSON.stringify(GAME_DATA.extractionRecipes, null, 2));
+        console.log(JSON.stringify(state.materialAvailability, null, 2));
+    }
+    else {
+        alert("failed");
+    }
 }

@@ -220,3 +220,36 @@ export async function getRecipes(): Promise<RecipesResponse | undefined> {
     }
     return result.data;
 }
+
+export async function getExtraction(): Promise<ExtractionResponse | undefined> {
+    const apiKey = getApiKey();
+    if (apiKey === undefined) {
+        return undefined;
+    }
+
+
+    const response = await fetch(
+        `${baseUri}extraction`,
+        {
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+                Accept: "application/json",
+            },
+        }
+    );
+
+    if (!response.ok) {
+        console.log(`Failed to fetch recipes: ${response.status} ${response.statusText}`);
+        return undefined;
+    }
+
+    const recipes: unknown = await response.json();
+    // console.log(materials);
+
+    const result = ExtractionResponseSchema.safeParse(recipes);
+    if (!result.success) {
+        console.log(result.error.issues);
+        return undefined;
+    }
+    return result.data;
+}

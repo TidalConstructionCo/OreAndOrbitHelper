@@ -18,6 +18,7 @@ export function renderExtractorSettings({
 }: ExtractorSettingsOptions): void {
     container.replaceChildren();
 
+    console.log(`Rendering extractor for ${JSON.stringify(materials)}`);
     for (const material of materials) {
         const id = getElementIdForMaterial(material);
         const value = availability[material] ?? 1;
