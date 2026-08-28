@@ -104,6 +104,20 @@ function initialize() {
     initializeToolTabs();
     initializeApiKeyPage();
 
+
+    const cachedMaterials = loadCache(CACHE_KEYS.materials, MaterialsResponseSchema);
+    if (cachedMaterials) {
+        loadMaterials(cachedMaterials.data);
+    }
+    const cachedRecipes = loadCache(CACHE_KEYS.recipes, RecipesResponseSchema);
+    if (cachedRecipes) {
+        loadRecipes(cachedRecipes.data);
+    }
+    const cachedExtraction = loadCache(CACHE_KEYS.locations, ExtractionResponseSchema);
+    if (cachedExtraction) {
+        loadExtraction(cachedExtraction.data);
+    }
+
     // TODO: rename
     const updateMaterialsButton =
         document.querySelector<HTMLButtonElement>(
@@ -145,18 +159,6 @@ function initialize() {
         }, 100);
     });
 
-    const cachedMaterials = loadCache(CACHE_KEYS.materials, MaterialsResponseSchema);
-    if (cachedMaterials) {
-        loadMaterials(cachedMaterials.data);
-    }
-    const cachedRecipes = loadCache(CACHE_KEYS.recipes, RecipesResponseSchema);
-    if (cachedRecipes) {
-        loadRecipes(cachedRecipes.data);
-    }
-    const cachedExtraction = loadCache(CACHE_KEYS.locations, ExtractionResponseSchema);
-    if (cachedExtraction) {
-        loadExtraction(cachedExtraction.data);
-    }
 
     render();
 }
@@ -191,14 +193,12 @@ function loadExtraction(extractionData: ExtractionResponse) {
         newExtraction[recipe.material] = { amount: recipe.units_per_batch, duration: recipe.batch_minutes };
     }
     GAME_DATA.extractionRecipes = newExtraction;
-    alert(GAME_DATA.extractionRecipes);
     const newAvailability: Record<string, number> = Object.fromEntries(extractionData.data.map(res => [res.material, state.materialAvailability[res.material] ?? 5]));
     state.materialAvailability = newAvailability;
     console.log(JSON.stringify(GAME_DATA.extractionRecipes, null, 2));
     console.log(JSON.stringify(state.materialAvailability, null, 2));
 }
 
-// TODO: fix rendering of tree on load (data is stale?)
 // TODO: remove the alerts
 
 async function updateGameData() {
@@ -209,7 +209,8 @@ async function updateGameData() {
         saveToCache(CACHE_KEYS.materials, materialApiResult);
     }
     else {
-        alert("failed");
+        alert("Failed to fetch API data. Try again later (5+ minutes from now).");
+        return;
     }
 
     const recipeApiResult = await getRecipes();
@@ -217,16 +218,10 @@ async function updateGameData() {
         loadRecipes(recipeApiResult);
         saveToCache(CACHE_KEYS.recipes, recipeApiResult);
     }
-    else {
-        alert("failed");
-    }
 
     const extractionApiResult = await getExtraction();
     if (extractionApiResult) {
         loadExtraction(extractionApiResult);
         saveToCache(CACHE_KEYS.locations, extractionApiResult);
-    }
-    else {
-        alert("failed");
     }
 }
