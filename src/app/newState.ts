@@ -1,5 +1,5 @@
-export type AppState = {}
+export type AppState = {};
 
 export function createInitialState(): AppState {
-  return {}
+  return {};
 }

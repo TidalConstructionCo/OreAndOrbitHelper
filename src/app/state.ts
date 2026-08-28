@@ -1,9 +1,9 @@
 export type AppState = {
-  selectedTarget: string
-  searchText: string
-  recipeChoices: Map<string, number>
-  materialAvailability: Record<string, number>
-}
+  selectedTarget: string;
+  searchText: string;
+  recipeChoices: Map<string, number>;
+  materialAvailability: Record<string, number>;
+};
 
 export function createInitialState(): AppState {
   return {
@@ -19,5 +19,5 @@ export function createInitialState(): AppState {
       'Silica Sand': 5,
       'Saline Brine': 5,
     },
-  }
+  };
 }

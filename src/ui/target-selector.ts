@@ -1,9 +1,9 @@
 type TargetSelectorOptions = {
-  select: HTMLSelectElement
-  materials: string[]
-  selectedTarget: string
-  onTargetChanged: (target: string) => void
-}
+  select: HTMLSelectElement;
+  materials: string[];
+  selectedTarget: string;
+  onTargetChanged: (target: string) => void;
+};
 
 export function initializeTargetSelector({
   select,
@@ -11,23 +11,23 @@ export function initializeTargetSelector({
   selectedTarget,
   onTargetChanged,
 }: TargetSelectorOptions): void {
-  select.replaceChildren()
+  select.replaceChildren();
 
   for (const material of materials) {
-    const option = document.createElement('option')
-    option.value = material
-    option.textContent = material
-    select.appendChild(option)
+    const option = document.createElement('option');
+    option.value = material;
+    option.textContent = material;
+    select.appendChild(option);
   }
 
   // Preserve the selected target when it still exists.
   if (materials.includes(selectedTarget)) {
-    select.value = selectedTarget
+    select.value = selectedTarget;
   } else {
-    select.selectedIndex = 0
+    select.selectedIndex = 0;
   }
 
   select.onchange = () => {
-    onTargetChanged(select.value)
-  }
+    onTargetChanged(select.value);
+  };
 }

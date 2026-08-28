@@ -1,8 +1,8 @@
-import { getApiKey } from './api-key'
+import { getApiKey } from './api-key';
 
-const baseUri = 'https://oreandorbit.com/api/v1/'
+const baseUri = 'https://oreandorbit.com/api/v1/';
 
-import { z } from 'zod'
+import { z } from 'zod';
 
 const MaterialSchema = z.object({
   id: z.string(),
@@ -14,21 +14,21 @@ const MaterialSchema = z.object({
   icon: z.string().url(),
   buy: z.number().nullable(),
   sell: z.number().nullable(),
-})
+});
 
 export const MaterialsResponseSchema = z.object({
   data: z.array(MaterialSchema),
-})
+});
 
-export type Material = z.infer<typeof MaterialSchema>
+export type Material = z.infer<typeof MaterialSchema>;
 
-export type MaterialsResponse = z.infer<typeof MaterialsResponseSchema>
+export type MaterialsResponse = z.infer<typeof MaterialsResponseSchema>;
 
 const ExtractionBoosterSchema = z.object({
   per_day: z.number(),
   material: z.string(),
   yield_bonus: z.number(),
-})
+});
 
 export const ExtractionSchema = z.object({
   material: z.string(),
@@ -40,25 +40,25 @@ export const ExtractionSchema = z.object({
   required_per_day: z.record(z.string(), z.number()),
   booster: ExtractionBoosterSchema.nullable(),
   research: z.string().nullable(),
-})
+});
 
 export const ExtractionResponseSchema = z.object({
   data: z.array(ExtractionSchema),
-})
+});
 
-export type Extraction = z.infer<typeof ExtractionSchema>
-export type ExtractionBooster = z.infer<typeof ExtractionBoosterSchema>
-export type ExtractionResponse = z.infer<typeof ExtractionResponseSchema>
+export type Extraction = z.infer<typeof ExtractionSchema>;
+export type ExtractionBooster = z.infer<typeof ExtractionBoosterSchema>;
+export type ExtractionResponse = z.infer<typeof ExtractionResponseSchema>;
 
 const RecipeMaterialSchema = z.object({
   qty: z.number(),
   material: z.string(),
-})
+});
 
 const RecipeOutputSchema = z.object({
   material: z.string(),
   qty: z.number(),
-})
+});
 
 export const RecipeSchema = z.object({
   id: z.string(),
@@ -74,16 +74,16 @@ export const RecipeSchema = z.object({
   planet_gate: z.string().nullable(),
   research: z.string().nullable(),
   schematic: z.boolean(),
-})
+});
 
 export const RecipesResponseSchema = z.object({
   data: z.array(RecipeSchema),
-})
+});
 
-export type RecipeMaterial = z.infer<typeof RecipeMaterialSchema>
-export type RecipeOutput = z.infer<typeof RecipeOutputSchema>
-export type Recipe = z.infer<typeof RecipeSchema>
-export type RecipesResponse = z.infer<typeof RecipesResponseSchema>
+export type RecipeMaterial = z.infer<typeof RecipeMaterialSchema>;
+export type RecipeOutput = z.infer<typeof RecipeOutputSchema>;
+export type Recipe = z.infer<typeof RecipeSchema>;
+export type RecipesResponse = z.infer<typeof RecipesResponseSchema>;
 
 // TODO:
 // 1) get the other data
@@ -96,9 +96,9 @@ const CacheSchema = z.object({
   materials: MaterialsResponseSchema.optional(),
   extraction: ExtractionBoosterSchema.optional(),
   recipes: RecipesResponseSchema.optional(),
-})
+});
 
-type Cache = z.infer<typeof CacheSchema>
+type Cache = z.infer<typeof CacheSchema>;
 
 // function readCache(): Cache {
 //   const stored = localStorage.getItem(CACHE_KEY);
@@ -143,9 +143,9 @@ type Cache = z.infer<typeof CacheSchema>
 // }
 
 export async function getMaterials(): Promise<MaterialsResponse | undefined> {
-  const apiKey = getApiKey()
+  const apiKey = getApiKey();
   if (apiKey === undefined) {
-    return undefined
+    return undefined;
   }
 
   const response = await fetch(`${baseUri}materials`, {
@@ -153,29 +153,29 @@ export async function getMaterials(): Promise<MaterialsResponse | undefined> {
       Authorization: `Bearer ${apiKey}`,
       Accept: 'application/json',
     },
-  })
+  });
 
   if (!response.ok) {
     // throw new Error(`Request failed: ${response.status}`);
-    console.log(`Failed to fetch materials: ${response.status} ${response.statusText}`)
-    return undefined
+    console.log(`Failed to fetch materials: ${response.status} ${response.statusText}`);
+    return undefined;
   }
 
-  const materials: unknown = await response.json()
+  const materials: unknown = await response.json();
   // console.log(materials);
 
-  const result = MaterialsResponseSchema.safeParse(materials)
+  const result = MaterialsResponseSchema.safeParse(materials);
   if (!result.success) {
-    console.log(result.error.issues)
-    return undefined
+    console.log(result.error.issues);
+    return undefined;
   }
-  return result.data
+  return result.data;
 }
 
 export async function getRecipes(): Promise<RecipesResponse | undefined> {
-  const apiKey = getApiKey()
+  const apiKey = getApiKey();
   if (apiKey === undefined) {
-    return undefined
+    return undefined;
   }
 
   const response = await fetch(`${baseUri}recipes`, {
@@ -183,29 +183,29 @@ export async function getRecipes(): Promise<RecipesResponse | undefined> {
       Authorization: `Bearer ${apiKey}`,
       Accept: 'application/json',
     },
-  })
+  });
 
   if (!response.ok) {
     // throw new Error(`Request failed: ${response.status}`);
-    console.log(`Failed to fetch recipes: ${response.status} ${response.statusText}`)
-    return undefined
+    console.log(`Failed to fetch recipes: ${response.status} ${response.statusText}`);
+    return undefined;
   }
 
-  const recipes: unknown = await response.json()
+  const recipes: unknown = await response.json();
   // console.log(materials);
 
-  const result = RecipesResponseSchema.safeParse(recipes)
+  const result = RecipesResponseSchema.safeParse(recipes);
   if (!result.success) {
-    console.log(result.error.issues)
-    return undefined
+    console.log(result.error.issues);
+    return undefined;
   }
-  return result.data
+  return result.data;
 }
 
 export async function getExtraction(): Promise<ExtractionResponse | undefined> {
-  const apiKey = getApiKey()
+  const apiKey = getApiKey();
   if (apiKey === undefined) {
-    return undefined
+    return undefined;
   }
 
   const response = await fetch(`${baseUri}extraction`, {
@@ -213,20 +213,20 @@ export async function getExtraction(): Promise<ExtractionResponse | undefined> {
       Authorization: `Bearer ${apiKey}`,
       Accept: 'application/json',
     },
-  })
+  });
 
   if (!response.ok) {
-    console.log(`Failed to fetch recipes: ${response.status} ${response.statusText}`)
-    return undefined
+    console.log(`Failed to fetch recipes: ${response.status} ${response.statusText}`);
+    return undefined;
   }
 
-  const recipes: unknown = await response.json()
+  const recipes: unknown = await response.json();
   // console.log(materials);
 
-  const result = ExtractionResponseSchema.safeParse(recipes)
+  const result = ExtractionResponseSchema.safeParse(recipes);
   if (!result.success) {
-    console.log(result.error.issues)
-    return undefined
+    console.log(result.error.issues);
+    return undefined;
   }
-  return result.data
+  return result.data;
 }

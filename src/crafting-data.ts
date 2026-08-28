@@ -1,24 +1,24 @@
 export interface MaterialAmount {
-  material: string
-  amount: number
+  material: string;
+  amount: number;
 }
 
 export interface Recipe {
-  name: string
-  duration: number
-  inputs: MaterialAmount[]
-  outputs: MaterialAmount[]
+  name: string;
+  duration: number;
+  inputs: MaterialAmount[];
+  outputs: MaterialAmount[];
 }
 
 export interface ExtractionRecipe {
-  amount: number
-  duration: number
+  amount: number;
+  duration: number;
 }
 
 interface GameData {
-  materials: string[]
-  recipes: Recipe[]
-  extractionRecipes: Record<string, ExtractionRecipe>
+  materials: string[];
+  recipes: Recipe[];
+  extractionRecipes: Record<string, ExtractionRecipe>;
 }
 
 const GAME_DATA: GameData = {
@@ -392,6 +392,6 @@ const GAME_DATA: GameData = {
       duration: 13,
     },
   },
-}
+};
 
-export default GAME_DATA
+export default GAME_DATA;
