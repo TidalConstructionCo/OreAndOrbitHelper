@@ -34,9 +34,11 @@ export function loadCache<T>(
     key: string,
     dataSchema: z.ZodType<T>
 ): CachedValue<T> | undefined {
+    console.log(`Loading ${key}`);
     const stored = localStorage.getItem(key);
 
     if (!stored) {
+        console.log(`Not found.`);
         return undefined;
     }
 
@@ -45,13 +47,16 @@ export function loadCache<T>(
 
         const cacheSchema = createCachedValueSchema(dataSchema);
         const result = cacheSchema.safeParse(parsed);
+        // console.log(`Loading ${key}`);
 
         if (!result.success) {
+            console.log(`Parsing failed: ${JSON.stringify(result.error)}`);
             localStorage.removeItem(key);
             return undefined;
         }
 
-        const cache = result.data;
+        console.log(`Loaded ${JSON.stringify(result.data)}`);
+        return result.data;
     } catch {
         localStorage.removeItem(key);
         return undefined;

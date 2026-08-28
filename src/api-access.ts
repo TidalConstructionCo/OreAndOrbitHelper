@@ -17,7 +17,7 @@ const MaterialSchema = z.object({
 });
 
 
-const MaterialsResponseSchema = z.object({
+export const MaterialsResponseSchema = z.object({
     data: z.array(MaterialSchema),
 });
 
@@ -33,7 +33,7 @@ const ExtractionBoosterSchema = z.object({
     yield_bonus: z.number(),
 });
 
-const ExtractionSchema = z.object({
+export const ExtractionSchema = z.object({
     material: z.string(),
     type: z.string(),
     trait: z.string(),
@@ -67,7 +67,7 @@ const RecipeOutputSchema = z.object({
     qty: z.number(),
 });
 
-const RecipeSchema = z.object({
+export const RecipeSchema = z.object({
     id: z.string(),
     output: RecipeOutputSchema,
     inputs: z.array(RecipeMaterialSchema),

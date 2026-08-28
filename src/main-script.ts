@@ -7,7 +7,8 @@ import { renderSummary } from "./ui/summary";
 import { initializeToolTabs } from "./ui/tool-tabs";
 import { initializeTargetSelector } from "./ui/target-selector";
 import { renderExtractorSettings } from "./ui/extractor-settings";
-import { getExtraction, getMaterials, getRecipes } from "./api-access";
+import { ExtractionResponse, ExtractionResponseSchema, getExtraction, getMaterials, getRecipes, MaterialsResponse, MaterialsResponseSchema, RecipesResponse, RecipesResponseSchema } from "./api-access";
+import { CACHE_KEYS, loadCache, saveToCache } from "./cache";
 
 const state = createInitialState();
 
@@ -144,19 +145,68 @@ function initialize() {
         }, 100);
     });
 
+    const cachedMaterials = loadCache(CACHE_KEYS.materials, MaterialsResponseSchema);
+    if (cachedMaterials) {
+        loadMaterials(cachedMaterials.data);
+    }
+    const cachedRecipes = loadCache(CACHE_KEYS.recipes, RecipesResponseSchema);
+    if (cachedRecipes) {
+        loadRecipes(cachedRecipes.data);
+    }
+    const cachedExtraction = loadCache(CACHE_KEYS.locations, ExtractionResponseSchema);
+    if (cachedExtraction) {
+        loadExtraction(cachedExtraction.data);
+    }
 
     render();
 }
 
 initialize();
 
+function loadMaterials(materialData: MaterialsResponse) {
+    GAME_DATA.materials = materialData.data.map(r => r.id);
+
+}
+
+function loadRecipes(recipeApiResult: RecipesResponse) {
+    GAME_DATA.recipes = recipeApiResult.data.map(r => {
+        const inputs = r.inputs.map(i => { return { material: i.material, amount: i.qty }; });
+        const outputs = [{ material: r.output.material, amount: r.output.qty }];
+        const byproduct = r.byproduct;
+        if (byproduct) {
+            outputs.push({ material: byproduct.material, amount: byproduct.qty });
+        }
+        return {
+            inputs,
+            outputs,
+            duration: r.batch_minutes,
+            name: r.id,
+        };
+    });
+}
+
+function loadExtraction(extractionData: ExtractionResponse) {
+    const newExtraction: Record<string, ExtractionRecipe> = {};
+    for (const recipe of extractionData.data) {
+        newExtraction[recipe.material] = { amount: recipe.units_per_batch, duration: recipe.batch_minutes };
+    }
+    GAME_DATA.extractionRecipes = newExtraction;
+    alert(GAME_DATA.extractionRecipes);
+    const newAvailability: Record<string, number> = Object.fromEntries(extractionData.data.map(res => [res.material, state.materialAvailability[res.material] ?? 5]));
+    state.materialAvailability = newAvailability;
+    console.log(JSON.stringify(GAME_DATA.extractionRecipes, null, 2));
+    console.log(JSON.stringify(state.materialAvailability, null, 2));
+}
+
+// TODO: fix rendering of tree on load (data is stale?)
+// TODO: remove the alerts
+
 async function updateGameData() {
-    // TODO: fix extractor
     // TODO: fix display name of materials
     const materialApiResult = await getMaterials();
     if (materialApiResult) {
-        // TODO: set cache
-        GAME_DATA.materials = materialApiResult.data.map(r => r.id);
+        loadMaterials(materialApiResult);
+        saveToCache(CACHE_KEYS.materials, materialApiResult);
     }
     else {
         alert("failed");
@@ -164,21 +214,8 @@ async function updateGameData() {
 
     const recipeApiResult = await getRecipes();
     if (recipeApiResult) {
-        // TODO: set cache
-        GAME_DATA.recipes = recipeApiResult.data.map(r => {
-            const inputs = r.inputs.map(i => { return { material: i.material, amount: i.qty }; });
-            const outputs = [{ material: r.output.material, amount: r.output.qty }];
-            const byproduct = r.byproduct;
-            if (byproduct) {
-                outputs.push({ material: byproduct.material, amount: byproduct.qty });
-            }
-            return {
-                inputs,
-                outputs,
-                duration: r.batch_minutes,
-                name: r.id,
-            };
-        });
+        loadRecipes(recipeApiResult);
+        saveToCache(CACHE_KEYS.recipes, recipeApiResult);
     }
     else {
         alert("failed");
@@ -186,17 +223,8 @@ async function updateGameData() {
 
     const extractionApiResult = await getExtraction();
     if (extractionApiResult) {
-        // TODO: set cache
-        const newExtraction: Record<string, ExtractionRecipe> = {};
-        for (const recipe of extractionApiResult.data) {
-            newExtraction[recipe.material] = { amount: recipe.units_per_batch, duration: recipe.batch_minutes };
-        }
-        GAME_DATA.extractionRecipes = newExtraction;
-        alert(GAME_DATA.extractionRecipes);
-        const newAvailability: Record<string, number> = Object.fromEntries(extractionApiResult.data.map(res => [res.material, state.materialAvailability[res.material] ?? 5]));
-        state.materialAvailability = newAvailability;
-        console.log(JSON.stringify(GAME_DATA.extractionRecipes, null, 2));
-        console.log(JSON.stringify(state.materialAvailability, null, 2));
+        loadExtraction(extractionApiResult);
+        saveToCache(CACHE_KEYS.locations, extractionApiResult);
     }
     else {
         alert("failed");
