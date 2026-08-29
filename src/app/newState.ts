@@ -13,7 +13,7 @@ type CraftingTreeState = {
   targetMaterial: Material | undefined;
 };
 
-type GameData = {
+export type GameData = {
   // TODO: replace with actual domain types that get created from those?
   materialData: MaterialsResponse;
   recipeData: RecipesResponse;

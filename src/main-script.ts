@@ -7,6 +7,12 @@
  * - clean up tree logic => lots of info that should probably not live on the nodes
  * - clean up where are ids, strings, objects used and what should it actually be
  * - fix error in craftingTreeNew
+ * - add unit tests for state transitions
+ * - recipe selection in tree
+ * - maybe replace tree with filetree-like view
+ * - clean up main script page
+ * - handle all the optionals from query selectors
+ * - progress indicator for fetching API data
  */
 import { API_KEY_STORAGE_KEY, getApiKey, initializeApiPageNew } from './api-key.js';
 import { buildCraftingTreeNew } from './domain/craftingTreeNew';
@@ -20,8 +26,7 @@ import {
   RecipesResponseSchema,
 } from './api-access';
 import { CACHE_KEYS, loadCache, saveToCache } from './cache';
-// TODO: remove aliases
-import { AppState, createInitialState, MaterialId, TabId } from './app/newState';
+import { AppState, createInitialState, GameData, MaterialId, TabId } from './app/newState';
 import { getElementIdForMaterial } from './ui/utils';
 import { renderCraftingTreeNew } from './ui/craftingTreeNew';
 
@@ -85,20 +90,17 @@ async function updateGameData(state: AppState): Promise<AppState> {
 }
 
 function initializeReloadDataButton() {
-  // TODO: rename
-  const updateMaterialsButton = document.querySelector<HTMLButtonElement>('#reload-game-data');
-  if (updateMaterialsButton) {
-    updateMaterialsButton.addEventListener('click', async () => {
-      updateMaterialsButton.disabled = true;
+  const reloadGameDataButton = document.querySelector<HTMLButtonElement>('#reload-game-data');
+  if (reloadGameDataButton) {
+    reloadGameDataButton.addEventListener('click', async () => {
+      reloadGameDataButton.disabled = true;
 
       // TODO: maybe can clean out the try-catch?
       try {
         const newState = await updateGameData(GLOBAL_STATE);
         update(newState);
-        // TODO: still needed?
-        // refreshAllDisplays();
       } finally {
-        updateMaterialsButton.disabled = false;
+        reloadGameDataButton.disabled = false;
       }
     });
   }
@@ -165,29 +167,15 @@ export function initializeToolTabsNew(): void {
         selectedTool ? (selectedTool as TabId) : undefined,
       );
       update(newState);
-
-      // TODO: do this in render
-      // buttons.forEach((item) => {
-      //   item.classList.toggle('active', item === button);
-      // });
-
-      // panels.forEach((panel) => {
-      //   panel.classList.toggle('active', panel.id === selectedTool);
-      // });
     });
   });
 }
-
-// TODO: handle all the optionals from query selectors
 
 function updateApiKey(state: AppState, newKey: string | undefined): AppState {
   return { ...state, settings: { ...state.settings, storedApiKey: newKey } };
 }
 
-// TODO: initialize should be done, all handlers wired up(?) => now we need to update the render function(s).
-
 function initialize() {
-  // TODO: if not cached data but have key => query?
   // TODO: maybe group the cache loading?
   let newState = { ...GLOBAL_STATE };
   newState = loadApiKey(newState);
@@ -202,7 +190,7 @@ function initialize() {
     (event: SubmitEvent): void => {
       // TODO: maybe trim down what parts of the handler need to live here and what can be added at the implementation site
       event.preventDefault();
-      // TODO: get query selector out of here? also handle null. question mark for now
+      // TODO: get query selector out of here? also handle null differently?
       const input = document.querySelector<HTMLInputElement>('#apiKeyInput');
 
       if (!input) {
@@ -256,8 +244,7 @@ function updateAvailability(state: AppState, material: MaterialId, amount: numbe
 function initializeExtractorSettings(): void {
   const extractorSettings = document.querySelector<HTMLElement>('.extractor-settings');
 
-  // extractorSettings?.addEventListener('input', (event) => {
-  // TODO: using change for now so I don't rerender while dragging.
+  // TODO: using change as event target for now so I don't rerender while dragging.
   // Later, I should do change based rendering so I can still update the relevant numbers (slider level and extractor count) while dragging
   extractorSettings?.addEventListener('change', (event) => {
     const target = event.target;
@@ -278,11 +265,11 @@ function initializeExtractorSettings(): void {
   });
 }
 
-function renderToolbar(state: AppState) {
+function renderToolbar(selectedTab: TabId) {
   const buttons = document.querySelectorAll<HTMLElement>('.tool-button');
   const panels = document.querySelectorAll<HTMLElement>('.tool-panel');
 
-  const selectedTool = state.selectedTab;
+  const selectedTool = selectedTab;
   buttons.forEach((button) => {
     button.classList.toggle('active', selectedTool === button.dataset.tool);
   });
@@ -291,12 +278,12 @@ function renderToolbar(state: AppState) {
   });
 }
 
-function isGameDataReady(state: AppState): boolean {
+function isGameDataReady(gameData: GameData): boolean {
   // TODO: get a better way to determine
   return (
-    state.gameData.materialData.data.length > 0 &&
-    state.gameData.recipeData.data.length > 0 &&
-    state.gameData.extractionData.data.length > 0
+    gameData.materialData.data.length > 0 &&
+    gameData.recipeData.data.length > 0 &&
+    gameData.extractionData.data.length > 0
   );
 }
 
@@ -313,20 +300,19 @@ function obfuscateApiKey(apiKey: string, visibleCharacters: number): string {
 }
 
 function renderStoredKey(
-  state: AppState,
+  storedApiKey: string | undefined,
   storedKeyContainer: HTMLDivElement,
   removeButton: HTMLButtonElement,
   keyValue: HTMLElement,
 ): void {
   const VISIBLE_CHARACTERS = 4;
-  const apiKey: string | undefined = state.settings.storedApiKey;
-  const hasStoredKey: boolean = Boolean(apiKey);
+  const hasStoredKey: boolean = Boolean(storedApiKey);
 
   storedKeyContainer.hidden = !hasStoredKey;
   removeButton.hidden = !hasStoredKey;
 
-  if (apiKey) {
-    keyValue.textContent = obfuscateApiKey(apiKey, VISIBLE_CHARACTERS);
+  if (storedApiKey) {
+    keyValue.textContent = obfuscateApiKey(storedApiKey, VISIBLE_CHARACTERS);
   } else {
     keyValue.textContent = '';
   }
@@ -341,7 +327,7 @@ function renderSettingsTab(state: AppState, parent: HTMLElement) {
     throw new Error('Required DOM elements were not found.');
   }
 
-  renderStoredKey(state, storedKeyContainer, removeButton, keyValue);
+  renderStoredKey(state.settings.storedApiKey, storedKeyContainer, removeButton, keyValue);
 }
 
 function renderMaterialSelect(state: AppState, select: HTMLSelectElement) {
@@ -370,12 +356,10 @@ function renderMaterialSelect(state: AppState, select: HTMLSelectElement) {
 }
 
 function renderCraftingTreeInputs(state: AppState) {
-  // TODO: render material select
   const targetSelect = document.querySelector<HTMLSelectElement>('#target-select');
   if (targetSelect) {
     renderMaterialSelect(state, targetSelect);
   }
-  // TODO: render search bar => not needed?
 }
 
 function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
@@ -387,19 +371,16 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
 
   renderCraftingTreeInputs(state);
   const tree = buildCraftingTreeNew(state);
-  // TODO: fix render tree
   if (!tree) {
     return;
   }
+  // TODO: handle the change event of recipe select similarly to the extractor settings one
   renderCraftingTreeNew(
     treeElement,
     tree.root,
-    // GLOBAL_STATE.recipeChoices,
     state.craftingTree.searchText ?? '',
     state.gameData.recipeData.data,
-    // (material, recipeIndex) => {
     () => {
-      // GLOBAL_STATE.recipeChoices.set(material, recipeIndex);
       update(state);
     },
   );
@@ -410,7 +391,6 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
   }
   const summary = document.getElementById('summary');
   if (summary) {
-    // TODO: fix impl of render summary
     renderSummaryNew(tree, summary);
   }
 }
@@ -423,7 +403,7 @@ function renderCraftingTreeTab(state: AppState, parent: HTMLElement) {
     return;
   }
 
-  const ready = isGameDataReady(state);
+  const ready = isGameDataReady(state.gameData);
   unavailableMessage.hidden = ready;
   toolContent.hidden = !ready;
   if (ready) {
@@ -434,8 +414,9 @@ function renderCraftingTreeTab(state: AppState, parent: HTMLElement) {
 function renderSelectedTool(state: AppState) {
   let selectedPanel: HTMLElement | undefined;
 
+  const selectedTab = state.selectedTab;
   document.querySelectorAll<HTMLElement>('.tool-panel').forEach((panel) => {
-    const isSelected = panel.id === state.selectedTab;
+    const isSelected = panel.id === selectedTab;
 
     panel.hidden = !isSelected;
 
@@ -448,7 +429,7 @@ function renderSelectedTool(state: AppState) {
     return;
   }
 
-  switch (state.selectedTab) {
+  switch (selectedTab) {
     case 'crafting-tree':
       renderCraftingTreeTab(state, selectedPanel);
       break;
@@ -458,21 +439,11 @@ function renderSelectedTool(state: AppState) {
       break;
 
     default: {
-      const exhaustiveCheck: never = state.selectedTab;
+      const exhaustiveCheck: never = selectedTab;
       console.log(exhaustiveCheck);
     }
   }
 }
-
-//  renderExtractorSettings({
-//     container: extractorSettings,
-//     materials: Object.keys(state.materialAvailability),
-//     availability: state.materialAvailability,
-//     onAvailabilityChanged: (material, value) => {
-//       state.materialAvailability[material] = value;
-//       render();
-//     },
-//   });
 
 export function renderExtractorSettingsNew(state: AppState, parent: HTMLElement): void {
   parent.replaceChildren();
@@ -507,10 +478,9 @@ export function renderExtractorSettingsNew(state: AppState, parent: HTMLElement)
   }
 }
 
-// TODO
 function renderNew() {
   // TODO: pass more concrete stuff than the full object
-  renderToolbar(GLOBAL_STATE);
+  renderToolbar(GLOBAL_STATE.selectedTab);
   renderSelectedTool(GLOBAL_STATE);
 }
 
