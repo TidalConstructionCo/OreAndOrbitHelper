@@ -25,6 +25,7 @@ import {
 import { CACHE_KEYS, loadCache, saveToCache } from './cache';
 // TODO: remove aliases
 import { AppState, createInitialState, MaterialId, TabId } from './app/newState';
+import { getElementIdForMaterial } from './ui/utils';
 
 // new state stuff here
 // TODO: check if I need the let or can do it differently
@@ -33,7 +34,7 @@ const buttons = document.querySelectorAll<HTMLElement>('.tool-button');
 const panels = document.querySelectorAll<HTMLElement>('.tool-panel');
 function update(newState: AppState) {
   GLOBAL_STATE = newState;
-  render();
+  renderNew();
 }
 
 // TODO: probably move somewhere else (domain)?
@@ -54,7 +55,10 @@ function loadCachedGameData(state: AppState): AppState {
 
 function loadApiKey(state: AppState): AppState {
   const key = getApiKey();
-  return { ...state, settings: { ...state.settings, apiKey: key ? key : state.settings.apiKey } };
+  return {
+    ...state,
+    settings: { ...state.settings, storedApiKey: key ? key : state.settings.storedApiKey },
+  };
 }
 
 async function updateGameData(state: AppState): Promise<AppState> {
@@ -134,20 +138,6 @@ function updateSelectedTarget(state: AppState): AppState {
 
 function initializeTargetSelect(): void {
   const targetSelect = document.querySelector<HTMLSelectElement>('#target-select');
-  // TODO: re-add the building of the elements to render(?)
-  // if (!targetSelect) {
-  //   return;
-  // }
-
-  // initializeTargetSelector({
-  //   select: targetSelect,
-  //   materials: GAME_DATA.materials,
-  //   selectedTarget: GLOBAL_STATE.selectedTarget,
-  //   onTargetChanged: (target) => {
-  //     GLOBAL_STATE.selectedTarget = target;
-  //     render();
-  //   },
-  // });
   targetSelect?.addEventListener('change', () => {
     const newState = updateSelectedTarget(GLOBAL_STATE);
     update(newState);
@@ -185,7 +175,7 @@ export function initializeToolTabsNew(): void {
 // TODO: handle all the optionals from query selectors
 
 function updateApiKey(state: AppState, newKey: string | undefined): AppState {
-  return { ...state, settings: { ...state.settings, apiKey: newKey } };
+  return { ...state, settings: { ...state.settings, storedApiKey: newKey } };
 }
 
 // TODO: initialize should be done, all handlers wired up(?) => now we need to update the render function(s).
@@ -237,34 +227,12 @@ function initialize() {
       }
     },
   );
+  initializeResizeHandler();
 
   update(newState);
 }
 
 // end new state stuff
-
-function renderToolAvailability(): void {
-  const configurationPanel = document.getElementById('configuration');
-
-  document.querySelectorAll<HTMLElement>('.tool-panel').forEach((panel) => {
-    if (panel === configurationPanel) {
-      return;
-    }
-
-    const unavailableMessage = panel.querySelector<HTMLElement>('.tool-unavailable');
-
-    const toolContent = panel.querySelector<HTMLElement>('.tool-content');
-
-    if (!unavailableMessage || !toolContent) {
-      return;
-    }
-
-    const ready = isGameDataReady();
-
-    unavailableMessage.hidden = ready;
-    toolContent.hidden = !ready;
-  });
-}
 
 function updateAvailability(state: AppState, material: MaterialId, amount: number): AppState {
   return {
@@ -302,62 +270,227 @@ function initializeExtractorSettings(): void {
   });
 }
 
-function render() {
-  renderToolAvailability();
-  if (!isGameDataReady()) {
+// TOdO: impl and use.
+function renderTargetSelector(state: AppState) {
+  // TODO: re-add the building of the elements to render(?)
+  if (!targetSelect) {
     return;
   }
 
-  if (GLOBAL_STATE.selectedTarget) {
-    const treeElement = document.getElementById('tree');
-    const tree = buildCraftingTree(
-      GAME_DATA.extractionRecipes,
-      GLOBAL_STATE.materialAvailability,
-      GLOBAL_STATE.selectedTarget,
-      GLOBAL_STATE,
-      GAME_DATA.recipes,
-    );
+  initializeTargetSelector({
+    select: targetSelect,
+    materials: GAME_DATA.materials,
+    selectedTarget: GLOBAL_STATE.selectedTarget,
+    onTargetChanged: (target) => {
+      GLOBAL_STATE.selectedTarget = target;
+      render();
+    },
+  });
+}
 
-    console.log({
-      selectedTarget: GLOBAL_STATE.selectedTarget,
-      recipeCount: GAME_DATA.recipes.length,
-      recipes: GAME_DATA.recipes,
-      tree,
-    });
+function renderExtractorPage() {
+  // TODO
+}
 
-    if (treeElement) {
-      renderCraftingTree({
-        treeElement,
-        rootNode: tree.root,
-        recipeChoices: GLOBAL_STATE.recipeChoices,
-        searchText: GLOBAL_STATE.searchText,
-        recipes: GAME_DATA.recipes,
-        onRecipeChoiceChanged: (material, recipeIndex) => {
-          GLOBAL_STATE.recipeChoices.set(material, recipeIndex);
-          render();
-        },
-      });
-    }
+function renderToolbar(state: AppState) {
+  const buttons = document.querySelectorAll<HTMLElement>('.tool-button');
+  const panels = document.querySelectorAll<HTMLElement>('.tool-panel');
 
-    const summary = document.getElementById('summary');
-    if (summary) {
-      renderSummary(tree, summary);
-    }
+  const selectedTool = state.selectedTab;
+  buttons.forEach((button) => {
+    button.classList.toggle('active', selectedTool === button.dataset.tool);
+  });
+  panels.forEach((panel) => {
+    panel.classList.toggle('active', panel.id === selectedTool);
+  });
+}
 
-    initializeExtractorSettings();
+function isGameDataReady(state: AppState): boolean {
+  // TODO: get a better way to determine
+  return (
+    state.gameData.materialData.data.length > 0 &&
+    state.gameData.recipeData.data.length > 0 &&
+    state.gameData.extractionData.data.length > 0
+  );
+}
+
+function obfuscateApiKey(apiKey: string, visibleCharacters: number): string {
+  if (apiKey.length <= visibleCharacters) {
+    return '•'.repeat(apiKey.length);
+  }
+
+  const hiddenCharacters = '•'.repeat(apiKey.length - visibleCharacters);
+
+  const visibleSuffix = apiKey.slice(-visibleCharacters);
+
+  return `${hiddenCharacters}${visibleSuffix}`;
+}
+
+function renderStoredKey(
+  state: AppState,
+  storedKeyContainer: HTMLDivElement,
+  removeButton: HTMLButtonElement,
+  keyValue: HTMLElement,
+): void {
+  const VISIBLE_CHARACTERS = 4;
+  const apiKey: string | undefined = state.settings.storedApiKey;
+  const hasStoredKey: boolean = Boolean(apiKey);
+
+  storedKeyContainer.hidden = !hasStoredKey;
+  removeButton.hidden = !hasStoredKey;
+
+  if (apiKey) {
+    keyValue.textContent = obfuscateApiKey(apiKey, VISIBLE_CHARACTERS);
+  } else {
+    keyValue.textContent = '';
   }
 }
 
-function refreshAllDisplays(): void {
-  if (!GAME_DATA.materials.includes(GLOBAL_STATE.selectedTarget)) {
-    GLOBAL_STATE.selectedTarget = GAME_DATA.materials[0] ?? '';
+function renderSettingsTab(state: AppState, parent: HTMLElement) {
+  const storedKeyContainer = parent.querySelector<HTMLDivElement>('#storedKey');
+  const keyValue = parent.querySelector<HTMLElement>('#keyValue');
+  const removeButton = parent.querySelector<HTMLButtonElement>('#removeKeyButton');
+
+  if (!storedKeyContainer || !keyValue || !removeButton) {
+    throw new Error('Required DOM elements were not found.');
   }
 
-  initializeTargetSelect();
-  initializeExtractorSettings();
-  render();
+  renderStoredKey(state, storedKeyContainer, removeButton, keyValue);
+}
+
+function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
+  const treeElement = parent.querySelector<HTMLDivElement>('tree');
+  if (!treeElement) {
+    // TODO: shouldnt happen
+    return;
+  }
+  const tree = buildCraftingTree(
+    GAME_DATA.extractionRecipes,
+    GLOBAL_STATE.materialAvailability,
+    GLOBAL_STATE.selectedTarget,
+    GLOBAL_STATE,
+    GAME_DATA.recipes,
+  );
+
+  // TODO: fix render tree
+  renderCraftingTree({
+    treeElement,
+    rootNode: tree.root,
+    recipeChoices: GLOBAL_STATE.recipeChoices,
+    searchText: GLOBAL_STATE.searchText,
+    recipes: GAME_DATA.recipes,
+    onRecipeChoiceChanged: (material, recipeIndex) => {
+      GLOBAL_STATE.recipeChoices.set(material, recipeIndex);
+      render();
+    },
+  });
+  // render extraction settings
+  const extractorSettingsContainer = parent.querySelector<HTMLElement>('.extractor-settings');
+  if (extractorSettingsContainer) {
+    renderExtractorSettingsNew(state, extractorSettingsContainer);
+  }
+  const summary = document.getElementById('summary');
+  if (summary) {
+    // TODO: fix impl of render summary
+    renderSummary(tree, summary);
+  }
+}
+
+function renderCraftingTreeTab(state: AppState, parent: HTMLElement) {
+  const unavailableMessage = parent.querySelector<HTMLElement>('.tool-unavailable');
+  const toolContent = parent.querySelector<HTMLElement>('.tool-content');
+
+  if (!unavailableMessage || !toolContent) {
+    return;
+  }
+
+  const ready = isGameDataReady(state);
+  unavailableMessage.hidden = ready;
+  toolContent.hidden = !ready;
+  if (ready) {
+    renderCraftingTreeContent(state, toolContent);
+  }
+}
+
+function renderSelectedTool(state: AppState) {
+  let selectedPanel: HTMLElement | undefined;
+  document.querySelectorAll<HTMLElement>('.tool-panel').forEach((panel) => {
+    if (panel.id !== state.selectedTab) {
+      // hide unselected content
+      selectedPanel = panel;
+    } else {
+      panel.hidden = true;
+    }
+  });
+
+  if (!selectedPanel) {
+    // TODO: shouldnt happen
+    return;
+  }
+  switch (state.selectedTab) {
+    case 'crafting-tree': {
+      renderCraftingTreeTab(state, selectedPanel);
+      break;
+    }
+    case 'settings': {
+      renderSettingsTab(state, selectedPanel);
+      break;
+    }
+    default: {
+      // force exhaustiveness
+      const foo: never = state.selectedTab;
+      console.log(foo);
+    }
+  }
+}
+
+//  renderExtractorSettings({
+//     container: extractorSettings,
+//     materials: Object.keys(state.materialAvailability),
+//     availability: state.materialAvailability,
+//     onAvailabilityChanged: (material, value) => {
+//       state.materialAvailability[material] = value;
+//       render();
+//     },
+//   });
+
+export function renderExtractorSettingsNew(state: AppState, parent: HTMLElement): void {
+  parent.replaceChildren();
+
+  for (const material of Object.keys(state.craftingTree.extractionYields)) {
+    const id = getElementIdForMaterial(material);
+    const value = state.craftingTree.extractionYields[material] ?? 1;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'extractor-setting';
+
+    const label = document.createElement('label');
+    label.htmlFor = id;
+    label.textContent = material;
+
+    const input = document.createElement('input');
+    input.type = 'range';
+    input.id = id;
+    input.name = material;
+    input.min = '1';
+    input.max = '10';
+    input.step = '1';
+    input.value = String(value);
+
+    const output = document.createElement('output');
+    output.id = `${id}-value`;
+    output.textContent = String(value);
+
+    wrapper.append(label, input, output);
+    parent.appendChild(wrapper);
+  }
+}
+
+// TODO
+function renderNew() {
+  // TODO: pass more concrete stuff than the full object
+  renderToolbar(GLOBAL_STATE);
+  renderSelectedTool(GLOBAL_STATE);
 }
 
 initialize();
-
-// TODO: remove the alerts
