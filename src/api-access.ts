@@ -30,7 +30,7 @@ const ExtractionBoosterSchema = z.object({
   yield_bonus: z.number(),
 });
 
-export const ExtractionSchema = z.object({
+const ExtractionSchema = z.object({
   material: z.string(),
   type: z.string(),
   trait: z.string(),
@@ -60,7 +60,7 @@ const RecipeOutputSchema = z.object({
   qty: z.number(),
 });
 
-export const RecipeSchema = z.object({
+const RecipeSchema = z.object({
   id: z.string(),
   output: RecipeOutputSchema,
   inputs: z.array(RecipeMaterialSchema),
@@ -84,63 +84,6 @@ export type RecipeMaterial = z.infer<typeof RecipeMaterialSchema>;
 export type RecipeOutput = z.infer<typeof RecipeOutputSchema>;
 export type Recipe = z.infer<typeof RecipeSchema>;
 export type RecipesResponse = z.infer<typeof RecipesResponseSchema>;
-
-// TODO:
-// 1) get the other data
-// 2) cache it
-// 3) do time stuff
-// decide whether to cache the 3 things separately (or at least materials)?
-
-const CacheSchema = z.object({
-  timestamp: z.number(),
-  materials: MaterialsResponseSchema.optional(),
-  extraction: ExtractionBoosterSchema.optional(),
-  recipes: RecipesResponseSchema.optional(),
-});
-
-type Cache = z.infer<typeof CacheSchema>;
-
-// function readCache(): Cache {
-//   const stored = localStorage.getItem(CACHE_KEY);
-
-//   if (!stored) {
-//     return {
-//       timestamp: 0,
-//     };
-//   }
-
-//   try {
-//     const parsed: unknown = JSON.parse(stored);
-//     const result = CacheSchema.safeParse(parsed);
-
-//     if (!result.success) {
-//       localStorage.removeItem(CACHE_KEY);
-
-//       return {
-//         timestamp: 0,
-//       };
-//     }
-
-//     return result.data;
-//   } catch {
-//     localStorage.removeItem(CACHE_KEY);
-
-//     return {
-//       timestamp: 0,
-//     };
-//   }
-// }
-
-// function writeCache(cache: Cache): void {
-//   localStorage.setItem(
-//     CACHE_KEY,
-//     JSON.stringify(cache)
-//   );
-// }
-
-// function isCacheFresh(timestamp: number): boolean {
-//   return Date.now() - timestamp < CACHE_DURATION_MS;
-// }
 
 export async function getMaterials(): Promise<MaterialsResponse | undefined> {
   const apiKey = getApiKey();

@@ -1,6 +1,5 @@
 import z from 'zod';
 
-const CACHE_DURATION_MS = 1000 * 60 * 5; // 5 min
 export const CACHE_KEYS = {
   materials: 'cache-materials',
   recipes: 'cache-recipes',
