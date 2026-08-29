@@ -46,8 +46,8 @@ export const ExtractionResponseSchema = z.object({
   data: z.array(ExtractionSchema),
 });
 
-export type Extraction = z.infer<typeof ExtractionSchema>;
-export type ExtractionBooster = z.infer<typeof ExtractionBoosterSchema>;
+// export type Extraction = z.infer<typeof ExtractionSchema>;
+// export type ExtractionBooster = z.infer<typeof ExtractionBoosterSchema>;
 export type ExtractionResponse = z.infer<typeof ExtractionResponseSchema>;
 
 const RecipeMaterialSchema = z.object({
@@ -80,7 +80,7 @@ export const RecipesResponseSchema = z.object({
   data: z.array(RecipeSchema),
 });
 
-export type RecipeMaterial = z.infer<typeof RecipeMaterialSchema>;
+// export type RecipeMaterial = z.infer<typeof RecipeMaterialSchema>;
 export type RecipeOutput = z.infer<typeof RecipeOutputSchema>;
 export type Recipe = z.infer<typeof RecipeSchema>;
 export type RecipesResponse = z.infer<typeof RecipesResponseSchema>;

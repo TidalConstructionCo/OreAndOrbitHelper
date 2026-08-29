@@ -13,6 +13,7 @@
  * - clean up main script page
  * - handle all the optionals from query selectors
  * - progress indicator for fetching API data
+ * - sort numeric values
  */
 import { API_KEY_STORAGE_KEY, getApiKey, initializeApiPageNew } from './api-key.js';
 import { buildCraftingTreeNew } from './domain/craftingTreeNew';

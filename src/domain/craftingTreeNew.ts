@@ -29,7 +29,7 @@ type RawTreeNodeNew = TreeNodeBaseNew & {
 
 export type TreeNodeNew = RecipeTreeNodeNew | RawTreeNodeNew;
 
-export type ExtractorRequirement = {
+type ExtractorRequirement = {
   material: string;
   amount: number;
   extractors: number;
