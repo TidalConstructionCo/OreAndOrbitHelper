@@ -247,8 +247,10 @@ function updateAvailability(state: AppState, material: MaterialId, amount: numbe
 function initializeExtractorSettings(): void {
   const extractorSettings = document.querySelector<HTMLElement>('.extractor-settings');
 
-  // TODO: verify. THis is an attempt to avoid having a listener per element.
-  extractorSettings?.addEventListener('input', (event) => {
+  // extractorSettings?.addEventListener('input', (event) => {
+  // TODO: using change for now so I don't rerender while dragging.
+  // Later, I should do change based rendering so I can still update the relevant numbers (slider level and extractor count) while dragging
+  extractorSettings?.addEventListener('change', (event) => {
     const target = event.target;
     if (!(target instanceof HTMLInputElement)) {
       return;
@@ -466,7 +468,8 @@ function renderSelectedTool(state: AppState) {
 export function renderExtractorSettingsNew(state: AppState, parent: HTMLElement): void {
   parent.replaceChildren();
 
-  for (const material of Object.keys(state.craftingTree.extractionYields)) {
+  for (const material of state.gameData.extractionData.data.map((e) => e.material)) {
+    // for (const material of Object.keys(state.craftingTree.extractionYields)) {
     const id = getElementIdForMaterial(material);
     const value = state.craftingTree.extractionYields[material] ?? 1;
 
