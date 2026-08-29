@@ -6,8 +6,8 @@ import {
   initializeApiPageNew,
 } from './api-key.js';
 import { renderCraftingTree } from './ui/crafting-tree';
-import { buildCraftingTree } from './domain/crafting-tree';
-import { renderSummary } from './ui/summary';
+import { buildCraftingTree, buildCraftingTreeNew } from './domain/crafting-tree';
+import { renderSummary, renderSummaryNew } from './ui/summary';
 import { initializeToolTabs } from './ui/tool-tabs';
 import { initializeTargetSelector } from './ui/target-selector';
 import { renderExtractorSettings } from './ui/extractor-settings';
@@ -26,6 +26,7 @@ import { CACHE_KEYS, loadCache, saveToCache } from './cache';
 // TODO: remove aliases
 import { AppState, createInitialState, MaterialId, TabId } from './app/newState';
 import { getElementIdForMaterial } from './ui/utils';
+import { renderCraftingTreeNew } from './ui/craftingTreeNew';
 
 // new state stuff here
 // TODO: check if I need the let or can do it differently
@@ -364,26 +365,24 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
     // TODO: shouldnt happen
     return;
   }
-  const tree = buildCraftingTree(
-    GAME_DATA.extractionRecipes,
-    GLOBAL_STATE.materialAvailability,
-    GLOBAL_STATE.selectedTarget,
-    GLOBAL_STATE,
-    GAME_DATA.recipes,
-  );
 
+  const tree = buildCraftingTreeNew(state);
   // TODO: fix render tree
-  renderCraftingTree({
+  if (!state.craftingTree.searchText) {
+    return;
+  }
+  renderCraftingTreeNew(
     treeElement,
-    rootNode: tree.root,
-    recipeChoices: GLOBAL_STATE.recipeChoices,
-    searchText: GLOBAL_STATE.searchText,
-    recipes: GAME_DATA.recipes,
-    onRecipeChoiceChanged: (material, recipeIndex) => {
-      GLOBAL_STATE.recipeChoices.set(material, recipeIndex);
-      render();
+    tree.root,
+    // GLOBAL_STATE.recipeChoices,
+    state.craftingTree.searchText,
+    state.gameData.recipeData.data,
+    // (material, recipeIndex) => {
+    (material) => {
+      // GLOBAL_STATE.recipeChoices.set(material, recipeIndex);
+      update(state);
     },
-  });
+  );
   // render extraction settings
   const extractorSettingsContainer = parent.querySelector<HTMLElement>('.extractor-settings');
   if (extractorSettingsContainer) {
@@ -392,7 +391,7 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
   const summary = document.getElementById('summary');
   if (summary) {
     // TODO: fix impl of render summary
-    renderSummary(tree, summary);
+    renderSummaryNew(tree, summary);
   }
 }
 
