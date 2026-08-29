@@ -4,7 +4,7 @@ type TabId = 'crafting-tree' | 'settings';
 type Settings = { apiKey: string | undefined };
 
 // TODO: move
-type MaterialId = string;
+export type MaterialId = string;
 type CraftingTreeState = {
   searchText: string | undefined;
   extractionYields: Record<MaterialId, number>;
