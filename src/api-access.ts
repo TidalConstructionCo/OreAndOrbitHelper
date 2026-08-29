@@ -80,7 +80,6 @@ export const RecipesResponseSchema = z.object({
   data: z.array(RecipeSchema),
 });
 
-// export type RecipeMaterial = z.infer<typeof RecipeMaterialSchema>;
 export type RecipeOutput = z.infer<typeof RecipeOutputSchema>;
 export type Recipe = z.infer<typeof RecipeSchema>;
 export type RecipesResponse = z.infer<typeof RecipesResponseSchema>;
@@ -99,13 +98,11 @@ export async function getMaterials(): Promise<MaterialsResponse | undefined> {
   });
 
   if (!response.ok) {
-    // throw new Error(`Request failed: ${response.status}`);
     console.log(`Failed to fetch materials: ${response.status} ${response.statusText}`);
     return undefined;
   }
 
   const materials: unknown = await response.json();
-  // console.log(materials);
 
   const result = MaterialsResponseSchema.safeParse(materials);
   if (!result.success) {
@@ -129,13 +126,11 @@ export async function getRecipes(): Promise<RecipesResponse | undefined> {
   });
 
   if (!response.ok) {
-    // throw new Error(`Request failed: ${response.status}`);
     console.log(`Failed to fetch recipes: ${response.status} ${response.statusText}`);
     return undefined;
   }
 
   const recipes: unknown = await response.json();
-  // console.log(materials);
 
   const result = RecipesResponseSchema.safeParse(recipes);
   if (!result.success) {
@@ -164,7 +159,6 @@ export async function getExtraction(): Promise<ExtractionResponse | undefined> {
   }
 
   const recipes: unknown = await response.json();
-  // console.log(materials);
 
   const result = ExtractionResponseSchema.safeParse(recipes);
   if (!result.success) {

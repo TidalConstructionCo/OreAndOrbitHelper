@@ -28,8 +28,9 @@ import {
 } from './api-access';
 import { CACHE_KEYS, loadCache, saveToCache } from './cache';
 import { AppState, createInitialState, GameData, MaterialId, TabId } from './app/newState';
-import { getElementIdForMaterial } from './ui/utils';
+// import { getElementIdForMaterial } from './ui/utils';
 import { renderCraftingTreeNew } from './ui/craftingTreeNew';
+import { renderExtractorSettingsNew } from './ui/extractorSettings.js';
 
 // new state stuff here
 // TODO: check if I need the let or can do it differently
@@ -242,12 +243,12 @@ function updateAvailability(state: AppState, material: MaterialId, amount: numbe
   };
 }
 // TODO: move the document.queryselector to top level once, then only refer to the objects from there on
-function initializeExtractorSettings(): void {
+export function initializeExtractorSettings(): void {
   const extractorSettings = document.querySelector<HTMLElement>('.extractor-settings');
 
   // TODO: using change as event target for now so I don't rerender while dragging.
   // Later, I should do change based rendering so I can still update the relevant numbers (slider level and extractor count) while dragging
-  extractorSettings?.addEventListener('change', (event) => {
+  extractorSettings?.addEventListener('input', (event) => {
     const target = event.target;
     if (!(target instanceof HTMLInputElement)) {
       return;
@@ -443,39 +444,6 @@ function renderSelectedTool(state: AppState) {
       const exhaustiveCheck: never = selectedTab;
       console.log(exhaustiveCheck);
     }
-  }
-}
-
-export function renderExtractorSettingsNew(state: AppState, parent: HTMLElement): void {
-  parent.replaceChildren();
-
-  for (const material of state.gameData.extractionData.data.map((e) => e.material)) {
-    // for (const material of Object.keys(state.craftingTree.extractionYields)) {
-    const id = getElementIdForMaterial(material);
-    const value = state.craftingTree.extractionYields[material] ?? 1;
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'extractor-setting';
-
-    const label = document.createElement('label');
-    label.htmlFor = id;
-    label.textContent = material;
-
-    const input = document.createElement('input');
-    input.type = 'range';
-    input.id = id;
-    input.name = material;
-    input.min = '1';
-    input.max = '10';
-    input.step = '1';
-    input.value = String(value);
-
-    const output = document.createElement('output');
-    output.id = `${id}-value`;
-    output.textContent = String(value);
-
-    wrapper.append(label, input, output);
-    parent.appendChild(wrapper);
   }
 }
 
