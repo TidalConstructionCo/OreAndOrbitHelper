@@ -1,8 +1,8 @@
-const STORAGE_KEY = 'apiKey';
+export const API_KEY_STORAGE_KEY = 'apiKey';
 const VISIBLE_CHARACTERS = 4;
 
 export function getApiKey(): string | undefined {
-  return localStorage.getItem(STORAGE_KEY) ?? undefined;
+  return localStorage.getItem(API_KEY_STORAGE_KEY) ?? undefined;
 }
 
 export function initialize(): void {
@@ -29,7 +29,7 @@ export function initialize(): void {
   }
 
   function displayStoredKey(): void {
-    const apiKey: string | null = localStorage.getItem(STORAGE_KEY);
+    const apiKey: string | null = localStorage.getItem(API_KEY_STORAGE_KEY);
     const hasStoredKey: boolean = Boolean(apiKey);
 
     storedKeyContainer.hidden = !hasStoredKey;
@@ -51,7 +51,7 @@ export function initialize(): void {
       return;
     }
 
-    localStorage.setItem(STORAGE_KEY, apiKey);
+    localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
 
     input.value = '';
     displayStoredKey();
@@ -63,10 +63,25 @@ export function initialize(): void {
     );
 
     if (confirmed) {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(API_KEY_STORAGE_KEY);
       displayStoredKey();
     }
   });
 
   displayStoredKey();
+}
+
+export function initializeApiPageNew(
+  onSubmit: (event: SubmitEvent) => void,
+  onRemove: () => void,
+): void {
+  const form = document.querySelector<HTMLFormElement>('#apiKeyForm');
+  const removeButton = document.querySelector<HTMLButtonElement>('#removeKeyButton');
+
+  if (!form || !removeButton) {
+    throw new Error('Required DOM elements were not found.');
+  }
+
+  form.addEventListener('submit', onSubmit);
+  removeButton.addEventListener('click', onRemove);
 }

@@ -1,6 +1,6 @@
 import { ExtractionResponse, Material, MaterialsResponse, RecipesResponse } from '../api-access';
 
-type TabId = 'crafting-tree' | 'settings';
+export type TabId = 'crafting-tree' | 'settings';
 type Settings = { apiKey: string | undefined };
 
 // TODO: move

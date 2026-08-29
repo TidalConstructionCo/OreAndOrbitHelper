@@ -1,5 +1,10 @@
 import GAME_DATA, { ExtractionRecipe } from './crafting-data';
-import { getApiKey, initialize as initializeApiKeyPage } from './api-key.js';
+import {
+  API_KEY_STORAGE_KEY,
+  getApiKey,
+  initialize as initializeApiKeyPage,
+  initializeApiPageNew,
+} from './api-key.js';
 import { renderCraftingTree } from './ui/crafting-tree';
 import { buildCraftingTree } from './domain/crafting-tree';
 import { renderSummary } from './ui/summary';
@@ -19,11 +24,13 @@ import {
 } from './api-access';
 import { CACHE_KEYS, loadCache, saveToCache } from './cache';
 // TODO: remove aliases
-import { AppState, createInitialState, MaterialId } from './app/newState';
+import { AppState, createInitialState, MaterialId, TabId } from './app/newState';
 
 // new state stuff here
 // TODO: check if I need the let or can do it differently
 let GLOBAL_STATE = createInitialState();
+const buttons = document.querySelectorAll<HTMLElement>('.tool-button');
+const panels = document.querySelectorAll<HTMLElement>('.tool-panel');
 function update(newState: AppState) {
   GLOBAL_STATE = newState;
   render();
@@ -147,6 +154,42 @@ function initializeTargetSelect(): void {
   });
 }
 
+function updateSelectedTab(state: AppState, selectedTab: TabId | undefined): AppState {
+  if (!selectedTab) {
+    return state;
+  }
+
+  return { ...state, selectedTab };
+}
+
+export function initializeToolTabsNew(): void {
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const selectedTool = button.dataset.tool;
+
+      const newState = updateSelectedTab(GLOBAL_STATE, selectedTool);
+      update(newState);
+
+      // TODO: do this in render
+      // buttons.forEach((item) => {
+      //   item.classList.toggle('active', item === button);
+      // });
+
+      // panels.forEach((panel) => {
+      //   panel.classList.toggle('active', panel.id === selectedTool);
+      // });
+    });
+  });
+}
+
+// TODO: handle all the optionals from query selectors
+
+function updateApiKey(state: AppState, newKey: string | undefined): AppState {
+  return { ...state, settings: { ...state.settings, apiKey: newKey } };
+}
+
+// TODO: initialize should be done, all handlers wired up(?) => now we need to update the render function(s).
+
 function initialize() {
   // TODO: if not cached data but have key => query?
   // TODO: maybe group the cache loading?
@@ -158,11 +201,42 @@ function initialize() {
   initializeSearchButton();
   initializeTargetSelect();
   initializeExtractorSettings();
+  initializeToolTabsNew();
+  initializeApiPageNew(
+    (event: SubmitEvent): void => {
+      // TODO: maybe trim down what parts of the handler need to live here and what can be added at the implementation site
+      event.preventDefault();
+      // TODO: get query selector out of here? also handle null. question mark for now
+      const input = document.querySelector<HTMLInputElement>('#apiKeyInput');
 
-  // TODO
-  initializeToolTabs();
-  // TODO
-  initializeApiKeyPage();
+      if (!input) {
+        return;
+      }
+      const apiKey = input.value.trim();
+
+      if (!apiKey) {
+        return;
+      }
+
+      // TODO: clean up where the storage access should live
+      localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
+
+      input.value = '';
+      const newState = updateApiKey(GLOBAL_STATE, apiKey);
+      update(newState);
+    },
+    (): void => {
+      const confirmed: boolean = window.confirm(
+        'Are you sure you want to remove the stored API key?',
+      );
+
+      if (confirmed) {
+        localStorage.removeItem(API_KEY_STORAGE_KEY);
+        const newState = updateApiKey(GLOBAL_STATE, undefined);
+        update(newState);
+      }
+    },
+  );
 
   update(newState);
 }
