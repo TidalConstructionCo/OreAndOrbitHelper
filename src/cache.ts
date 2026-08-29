@@ -29,7 +29,7 @@ export function saveToCache<T>(key: string, data: T): void {
 }
 
 export function loadCache<T>(key: string, dataSchema: z.ZodType<T>): CachedValue<T> | undefined {
-  console.log(`Loading ${key}`);
+  // console.log(`Loading ${key}`);
   const stored = localStorage.getItem(key);
 
   if (!stored) {
@@ -45,12 +45,12 @@ export function loadCache<T>(key: string, dataSchema: z.ZodType<T>): CachedValue
     // console.log(`Loading ${key}`);
 
     if (!result.success) {
-      console.log(`Parsing failed: ${JSON.stringify(result.error)}`);
+      // console.log(`Parsing failed: ${JSON.stringify(result.error)}`);
       localStorage.removeItem(key);
       return undefined;
     }
 
-    console.log(`Loaded ${JSON.stringify(result.data)}`);
+    // console.log(`Loaded ${JSON.stringify(result.data)}`);
     return result.data;
   } catch {
     localStorage.removeItem(key);

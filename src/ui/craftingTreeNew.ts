@@ -1,7 +1,8 @@
 import * as d3 from 'd3';
 import type { Recipe } from '../api-access';
-import { formatAmount, formatPercent } from './formatting';
+// import { formatAmount, formatPercent } from './formatting';
 import { TreeNodeNew } from '../domain/craftingTreeNew';
+import { formatAmountNew, formatPercentNew } from './formatting';
 
 // TODO: don't really like it, could be improved. Too much logic too
 
@@ -137,14 +138,14 @@ export function renderCraftingTreeNew(
       }
 
       if (node.data.isRaw) {
-        return `${formatAmount(node.data.amount)}x raw material`;
+        return `${formatAmountNew(node.data.amount)}x raw material`;
       }
 
       return (
-        `${formatAmount(node.data.amount)}x · ` +
-        `${formatAmount(node.data.cycles)} cycles · ` +
-        `${formatAmount(node.data.duration)} min · ` +
-        `${formatPercent(node.data.utilization ?? 0)} utilization`
+        `${formatAmountNew(node.data.amount)}x · ` +
+        `${formatAmountNew(node.data.cycles)} cycles · ` +
+        `${formatAmountNew(node.data.duration)} min · ` +
+        `${formatPercentNew(node.data.utilization ?? 0)} utilization`
       );
     });
 

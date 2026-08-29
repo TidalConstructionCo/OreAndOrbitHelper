@@ -136,7 +136,7 @@ function buildTreeNodeNew(
 export function buildCraftingTreeNew(state: NewState): CraftingTreeNew | undefined {
   const rawMaterials: Record<string, number> = {};
 
-  const targetMaterial = state.craftingTree.targetMaterial;
+  const targetMaterial = state.craftingTree.targetMaterial ?? state.gameData.materialData.data[0];
   const extractionRecipes = state.gameData.extractionData.data;
   const materialAvailability = state.craftingTree.extractionYields;
   if (!targetMaterial) {

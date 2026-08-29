@@ -1,6 +1,13 @@
 import { CraftingTree, TreeNode } from '../domain/crafting-tree';
 import { CraftingTreeNew, TreeNodeNew } from '../domain/craftingTreeNew';
-import { formatAmount, formatPercent, formatRecipe } from './formatting';
+import {
+  formatAmount,
+  formatPercent,
+  formatRecipe,
+  formatAmountNew,
+  formatPercentNew,
+  formatRecipeNew,
+} from './formatting';
 
 export function renderSummary(tree: CraftingTree, summaryElement: HTMLElement) {
   summaryElement.replaceChildren();
@@ -91,7 +98,7 @@ export function renderSummaryNew(tree: CraftingTreeNew, summaryElement: HTMLElem
 
   for (const [material, amount] of Object.entries(tree.rawMaterials)) {
     const item = document.createElement('li');
-    item.textContent = `${formatAmount(amount)}x ${material}`;
+    item.textContent = `${formatAmountNew(amount)}x ${material}`;
     rawList.appendChild(item);
   }
 
@@ -116,7 +123,7 @@ export function renderSummaryNew(tree: CraftingTreeNew, summaryElement: HTMLElem
   for (const [recipe, utilization] of recipeTotals) {
     const item = document.createElement('li');
 
-    item.textContent = `${formatPercent(utilization)}: ${formatRecipe(recipe)}`;
+    item.textContent = `${formatPercentNew(utilization)}: ${formatRecipeNew(recipe)}`;
 
     utilizationList.appendChild(item);
   }
