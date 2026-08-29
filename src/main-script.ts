@@ -1,3 +1,13 @@
+// TODO: next: remove the old main script & now unneeded info
+// TODO: other todos
+/**
+ * - change based rendering
+ * - overclocking and underclocking
+ * - searchable target selector
+ * - clean up tree logic => lots of info that should probably not live on the nodes
+ * - clean up where are ids, strings, objects used and what should it actually be
+ * - fix error in craftingTreeNew
+ */
 import { API_KEY_STORAGE_KEY, getApiKey, initializeApiPageNew } from './api-key.js';
 import { buildCraftingTreeNew } from './domain/craftingTreeNew';
 import { renderSummaryNew } from './ui/summary';
@@ -6,7 +16,6 @@ import {
   getExtraction,
   getMaterials,
   getRecipes,
-  Material,
   MaterialsResponseSchema,
   RecipesResponseSchema,
 } from './api-access';
