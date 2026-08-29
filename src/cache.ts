@@ -57,7 +57,3 @@ export function loadCache<T>(key: string, dataSchema: z.ZodType<T>): CachedValue
     return undefined;
   }
 }
-
-export function isExpired<T>(cacheItem: CachedValue<T>) {
-  return Date.now() - cacheItem.timestamp >= CACHE_DURATION_MS;
-}
