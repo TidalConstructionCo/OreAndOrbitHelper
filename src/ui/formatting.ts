@@ -1,32 +1,35 @@
-import { Recipe } from "../crafting-data";
+import { Recipe as RecipeNew } from '../api-access';
 
 export function formatAmount(amount: number) {
-    if (Number.isInteger(amount)) {
-        return String(amount);
-    }
+  if (Number.isInteger(amount)) {
+    return String(amount);
+  }
 
-    return amount
-        .toFixed(2)
-        .replace(/0+$/, "")
-        .replace(/\.$/, "");
+  return amount.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
 }
 
-export function formatPercent(value: number) {
-    return `${formatAmount(value * 100)}%`;
+export function formatAmountNew(amount: number) {
+  if (Number.isInteger(amount)) {
+    return String(amount);
+  }
+
+  return amount.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
 }
 
-export function formatRecipe(recipe: Recipe) {
-    const inputs = recipe.inputs
-        .map(input =>
-            `${formatAmount(input.amount)}x ${input.material}`
-        )
-        .join(" + ");
+export function formatPercentNew(value: number) {
+  return `${formatAmount(value * 100)}%`;
+}
 
-    const outputs = recipe.outputs
-        .map(output =>
-            `${formatAmount(output.amount)}x ${output.material}`
-        )
-        .join(" + ");
+export function formatRecipeNew(recipe: RecipeNew) {
+  const inputs = recipe.inputs
+    .map((input) => `${formatAmount(input.qty)}x ${input.material}`)
+    .join(' + ');
 
-    return `[${inputs}] => [${outputs}]`;
+  const tmp = [`${formatAmount(recipe.output.qty)}x ${recipe.output.material}`];
+  if (recipe.byproduct) {
+    tmp.push(`${formatAmount(recipe.byproduct.qty)}x ${recipe.byproduct.material}`);
+  }
+  const outputs = tmp.join(' + ');
+
+  return `[${inputs}] => [${outputs}]`;
 }
