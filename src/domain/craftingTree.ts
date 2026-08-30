@@ -5,7 +5,7 @@ type TreeNodeBase = {
   path: MaterialId[];
 };
 
-type CraftingTree = {
+export type CraftingTree = {
   root: TreeNode;
 };
 
@@ -19,7 +19,7 @@ type PropertyType<T, K extends keyof T> = T[K];
 
 type MaterialId = PropertyType<Material, 'id'>;
 
-type TreePath = MaterialId[];
+export type TreePath = MaterialId[];
 
 // TODO: possibly problematic due to array identity => options? Worst case, fall back to string via concatenation
 type RecipeChoices = Map<TreePath, Recipe>;
