@@ -1,6 +1,6 @@
-// TODO: next: remove the old main script & now unneeded info
-// TODO: other todos
+// TODO
 /**
+ * - FIRST: recipe selection in tree
  * - change based rendering
  * - overclocking and underclocking
  * - searchable target selector
@@ -8,7 +8,6 @@
  * - clean up where are ids, strings, objects used and what should it actually be
  * - fix error in craftingTreeNew
  * - add unit tests for state transitions
- * - recipe selection in tree
  * - maybe replace tree with filetree-like view
  * - clean up main script page
  * - handle all the optionals from query selectors
@@ -28,12 +27,9 @@ import {
 } from './api-access';
 import { CACHE_KEYS, loadCache, saveToCache } from './cache';
 import { AppState, createInitialState, GameData, MaterialId, TabId } from './app/newState';
-// import { getElementIdForMaterial } from './ui/utils';
 import { renderCraftingTreeNew } from './ui/craftingTreeNew';
 import { renderExtractorSettingsNew } from './ui/extractorSettings.js';
 
-// new state stuff here
-// TODO: check if I need the let or can do it differently
 let GLOBAL_STATE = createInitialState();
 const buttons = document.querySelectorAll<HTMLElement>('.tool-button');
 function update(newState: AppState) {

@@ -32,7 +32,6 @@ export function renderExtractorSettingsNew(state: AppState, parent: HTMLElement)
 }
 
 function updateContainer(container: HTMLDivElement, material: string, id: string, value: string) {
-  // if (container)
   const label = container.querySelector<HTMLLabelElement>('label');
   const input = container.querySelector<HTMLInputElement>(`#${id}`);
   const output = container.querySelector<HTMLOutputElement>(`#${id}-value`);
