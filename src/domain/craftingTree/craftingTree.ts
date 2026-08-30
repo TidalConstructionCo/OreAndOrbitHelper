@@ -1,18 +1,29 @@
 import { Material, Recipe } from '../../api-access';
 
 type TreeNodeBase = {
-  children: TreeNode[];
   path: MaterialId[];
+  targetAmount: number;
 };
 
 export type CraftingTree = {
   root: TreeNode;
 };
 
-type RawMaterialNode = TreeNodeBase & { material: Material; amount: number; kind: 'rawMaterial' };
-type RecipeNode = TreeNodeBase & { kind: 'recipe' };
+type RawMaterialNode = TreeNodeBase & {
+  material: Material;
+  kind: 'rawMaterial';
+};
 
-type TreeNode = RawMaterialNode | RecipeNode;
+// TODO: maybe directly save the derived info instead of output amount etc?
+export type RecipeNode = TreeNodeBase & {
+  kind: 'recipe';
+  durationPerCycle: number;
+  outputAmount: number;
+  recipe: Recipe;
+  children: TreeNode[];
+};
+
+export type TreeNode = RawMaterialNode | RecipeNode;
 
 // TODO: collect type helpers somewhere
 type PropertyType<T, K extends keyof T> = T[K];
@@ -61,7 +72,14 @@ function createTreeNode(
     return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
   }
 
-  return createRecipeNode(currentPath, recipe, availableMaterials, availableRecipes, recipeChoices);
+  return createRecipeNode(
+    currentPath,
+    recipe,
+    availableMaterials,
+    availableRecipes,
+    recipeChoices,
+    targetAmount,
+  );
 }
 
 export function selectProducingRecipe(
@@ -79,7 +97,12 @@ function createRawMaterialNode(
   material: Material,
   amount: number,
 ): RawMaterialNode {
-  return { kind: 'rawMaterial', children: [], path: path, material: material, amount: amount };
+  return {
+    kind: 'rawMaterial',
+    path: path,
+    material: material,
+    targetAmount: amount,
+  };
 }
 
 function createRecipeNode(
@@ -88,10 +111,19 @@ function createRecipeNode(
   availableMaterials: Material[],
   availableRecipes: Recipe[],
   recipeChoices: RecipeChoices,
+  targetAmount: number,
 ): RecipeNode {
   const node: RecipeNode = {
     kind: 'recipe',
+    recipe: recipe,
     path: path,
+    durationPerCycle: recipe.batch_minutes,
+    outputAmount:
+      // TODO: fix
+      recipe.byproduct && recipe.byproduct.material === 'TODO: add id'
+        ? recipe.byproduct.qty
+        : recipe.output.qty,
+    targetAmount: targetAmount,
     children: recipe.inputs.flatMap((input) => {
       const material = availableMaterials.find((material) => input.material === material.id);
       if (!material) {

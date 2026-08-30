@@ -4,52 +4,17 @@ import {
   CraftingTree,
   RecipeChoices,
   selectProducingRecipe,
-  selectRecipe,
   TreePath,
 } from './craftingTree';
 import { Material, Recipe } from '../../api-access';
-
-function createDummyMaterial(
-  options: { id: string | undefined } | undefined = undefined,
-): Material {
-  return {
-    buy: null,
-    category: '',
-    icon: '',
-    id: options?.id ?? 'MyID',
-    mass_kg: 0,
-    name: 'My Name',
-    sell: null,
-    tier: 0,
-    volume_m3: 0,
-  };
-}
-
-function createDummyRecipe(options: { output: { material: Material; qty: number } }): Recipe {
-  return {
-    alt_of: null,
-    batch_minutes: 0,
-    building: '',
-    byproduct: null,
-    era: '',
-    id: 'RecipeId',
-    inputs: [],
-    output: { material: options.output.material.id, qty: options.output.qty },
-    planet_gate: null,
-    research: null,
-    schematic: false,
-    tier: 0,
-    workforce: '',
-  };
-}
+import { createDummyMaterial, createDummyRecipe } from './treeTestUtils';
 
 describe('buildTree', () => {
   it('builds tree with one node when there are no recipes', () => {
     const targetMaterial: Material = createDummyMaterial();
     const expected: CraftingTree = {
       root: {
-        amount: 1,
-        children: [],
+        targetAmount: 1,
         kind: 'rawMaterial',
         material: targetMaterial,
         path: [targetMaterial.id],
