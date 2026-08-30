@@ -1,7 +1,6 @@
 import { Material, Recipe } from '../api-access';
 
 type TreeNodeBase = {
-  //   kind: 'recipe' | 'rawMaterial';
   children: TreeNode[];
   path: MaterialId[];
 };
@@ -13,7 +12,7 @@ type CraftingTree = {
 type RawMaterialNode = TreeNodeBase & { material: Material; amount: number; kind: 'rawMaterial' };
 type RecipeNode = TreeNodeBase & { kind: 'recipe' };
 
-type TreeNode = RawMaterialNode;
+type TreeNode = RawMaterialNode | RecipeNode;
 
 // TODO: collect type helpers somewhere
 type PropertyType<T, K extends keyof T> = T[K];
@@ -35,6 +34,7 @@ export function buildTree(
   const path: TreePath = [targetMaterial.id];
   const root = createTreeNode(
     targetMaterial,
+    1,
     availableMaterials,
     availableRecipes,
     recipeChoices,
@@ -56,10 +56,10 @@ function createTreeNode(
   const recipe = selectRecipe(currentPath, recipeCandidates, recipeChoices);
 
   if (!recipe) {
-    return createRawMaterialNode(currentPath, targetMaterial);
+    return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
   }
 
-  return createRecipeNode(currentPath, recipe);
+  return createRecipeNode(currentPath, recipe, availableMaterials, availableRecipes, recipeChoices);
 }
 
 function createRawMaterialNode(
