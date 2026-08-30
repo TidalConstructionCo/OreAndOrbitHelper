@@ -1,4 +1,4 @@
-import { Material, Recipe } from '../api-access';
+import { Material, Recipe } from '../../api-access';
 
 type TreeNodeBase = {
   children: TreeNode[];
@@ -22,7 +22,7 @@ type MaterialId = PropertyType<Material, 'id'>;
 export type TreePath = MaterialId[];
 
 // TODO: possibly problematic due to array identity => options? Worst case, fall back to string via concatenation
-type RecipeChoices = Map<TreePath, Recipe>;
+export type RecipeChoices = Map<TreePath, Recipe>;
 
 export function buildTree(
   targetMaterial: Material,
@@ -30,7 +30,6 @@ export function buildTree(
   availableRecipes: Recipe[],
   recipeChoices: RecipeChoices,
 ): CraftingTree {
-  // TODO: fill
   const path: TreePath = [targetMaterial.id];
   const root = createTreeNode(
     targetMaterial,
@@ -52,14 +51,27 @@ function createTreeNode(
   recipeChoices: RecipeChoices,
   currentPath: TreePath,
 ): TreeNode {
-  const recipeCandidates = getProducingRecipes(targetMaterial, availableRecipes);
-  const recipe = selectRecipe(currentPath, recipeCandidates, recipeChoices);
-
+  const recipe = selectProducingRecipe(
+    targetMaterial,
+    availableRecipes,
+    recipeChoices,
+    currentPath,
+  );
   if (!recipe) {
     return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
   }
 
   return createRecipeNode(currentPath, recipe, availableMaterials, availableRecipes, recipeChoices);
+}
+
+export function selectProducingRecipe(
+  targetMaterial: Material,
+  availableRecipes: Recipe[],
+  recipeChoices: RecipeChoices,
+  currentPath: TreePath,
+): Recipe | undefined {
+  const recipeCandidates = getProducingRecipes(targetMaterial, availableRecipes);
+  return selectRecipe(currentPath, recipeCandidates, recipeChoices);
 }
 
 function createRawMaterialNode(
@@ -70,7 +82,6 @@ function createRawMaterialNode(
   return { kind: 'rawMaterial', children: [], path: path, material: material, amount: amount };
 }
 
-// todo: test
 function createRecipeNode(
   path: TreePath,
   recipe: Recipe,
@@ -111,7 +122,7 @@ function selectRecipe(
   choices: RecipeChoices,
 ): Recipe | undefined {
   const choice = choices.get(path);
-  if (choice) {
+  if (choice && recipes.includes(choice)) {
     return choice;
   }
   return recipes[0];
