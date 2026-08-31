@@ -1,4 +1,5 @@
 import { ExtractionResponse, Material, MaterialsResponse, RecipesResponse } from '../api-access';
+import { RecipeChoices } from '../domain/craftingTree/craftingTree';
 
 export type TabId = 'crafting-tree' | 'settings';
 // TODO: use apiKeyInput in event handler update function instead of dom element. Or is it useless?
@@ -11,6 +12,7 @@ type CraftingTreeState = {
   // TODO: maybe choose a better type?
   extractionYields: Record<MaterialId, number>;
   targetMaterial: Material | undefined;
+  recipeChoices: RecipeChoices;
 };
 
 export type GameData = {
@@ -31,7 +33,12 @@ export function createInitialState(): AppState {
   return {
     selectedTab: 'crafting-tree',
     settings: { storedApiKey: undefined, apiKeyInput: '' },
-    craftingTree: { searchText: undefined, extractionYields: {}, targetMaterial: undefined },
+    craftingTree: {
+      searchText: undefined,
+      extractionYields: {},
+      targetMaterial: undefined,
+      recipeChoices: new Map(),
+    },
     gameData: {
       // TODO: maybe omit the brackets
       extractionData: { data: [] },

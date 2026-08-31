@@ -23,12 +23,15 @@ import {
   getMaterials,
   getRecipes,
   MaterialsResponseSchema,
+  Recipe,
   RecipesResponseSchema,
 } from './api-access';
 import { CACHE_KEYS, loadCache, saveToCache } from './cache';
 import { AppState, createInitialState, GameData, MaterialId, TabId } from './app/newState';
 import { renderCraftingTreeNew } from './ui/craftingTreeNew';
 import { renderExtractorSettingsNew } from './ui/extractorSettings.js';
+import { buildTree } from './domain/craftingTree/craftingTree.js';
+import { renderCraftingTree } from './ui/craftingTree.js';
 
 let GLOBAL_STATE = createInitialState();
 const buttons = document.querySelectorAll<HTMLElement>('.tool-button');
@@ -360,6 +363,17 @@ function renderCraftingTreeInputs(state: AppState) {
   }
 }
 
+function updateRecipeSelection(state: AppState, path: string, recipe: Recipe): AppState {
+  const newChoices = new Map(state.craftingTree.recipeChoices);
+  // TODO: use string instead of array, this wont work for identity stuff
+  const pathParts = path.split('>');
+  newChoices.set(pathParts, recipe);
+  return {
+    ...state,
+    craftingTree: { ...state.craftingTree, recipeChoices: newChoices },
+  };
+}
+
 function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
   const treeElement = parent.querySelector<HTMLDivElement>('.tree');
   if (!treeElement) {
@@ -368,18 +382,28 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
   }
 
   renderCraftingTreeInputs(state);
-  const tree = buildCraftingTreeNew(state);
+  if (!state.craftingTree.targetMaterial) {
+    return;
+  }
+  const tree = buildTree(
+    state.craftingTree.targetMaterial,
+    state.gameData.materialData.data,
+    state.gameData.recipeData.data,
+    state.craftingTree.recipeChoices,
+  );
+  // const tree = buildCraftingTreeNew(state);
   if (!tree) {
     return;
   }
   // TODO: handle the change event of recipe select similarly to the extractor settings one
-  renderCraftingTreeNew(
+  renderCraftingTree(
+    // renderCraftingTreeNew(
     treeElement,
     tree.root,
     state.craftingTree.searchText ?? '',
-    state.gameData.recipeData.data,
-    () => {
-      update(state);
+    (path: string, recipe: Recipe) => {
+      const newState = updateRecipeSelection(state, path, recipe);
+      update(newState);
     },
   );
   // render extraction settings
@@ -389,7 +413,8 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
   }
   const summary = document.getElementById('summary');
   if (summary) {
-    renderSummaryNew(tree, summary);
+    // TODO: adapt summary for new tree
+    // renderSummaryNew(tree, summary);
   }
 }
 

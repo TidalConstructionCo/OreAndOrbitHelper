@@ -84,6 +84,7 @@ function createTreeNode(
     availableRecipes,
     recipeChoices,
     targetAmount,
+    targetMaterial,
   );
 }
 
@@ -117,6 +118,7 @@ function createRecipeNode(
   availableRecipes: Recipe[],
   recipeChoices: RecipeChoices,
   targetAmount: number,
+  targetMaterial: Material,
 ): RecipeNode {
   const node: RecipeNode = {
     kind: 'recipe',
@@ -129,6 +131,14 @@ function createRecipeNode(
         ? recipe.byproduct.qty
         : recipe.output.qty,
     targetAmount: targetAmount,
+    // TODO: fix utilization
+    utilization: 0,
+    recipeChoices: getProducingRecipes(targetMaterial, availableRecipes),
+    targetMaterial,
+    // TODO: fix cycles
+    totalCycles: 1,
+    // TODO: fix duration
+    totalDuration: 1,
     children: recipe.inputs.flatMap((input) => {
       const material = availableMaterials.find((material) => input.material === material.id);
       if (!material) {

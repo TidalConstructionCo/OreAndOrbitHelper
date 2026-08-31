@@ -8,7 +8,7 @@ type NodeGroup = Selection<SVGGElement, unknown, null, undefined>;
 type ContentSelection = Selection<HTMLDivElement, unknown, null, undefined>;
 
 // TODO: try to replace tree with this one
-export function createTree(
+export function renderCraftingTree(
   treeElement: HTMLElement,
   rootNode: TreeNode,
   searchText: string,
@@ -67,12 +67,14 @@ export function createTree(
     .selectAll<SVGGElement, HierarchyPointNode<TreeNode>>('g')
     .data(nodes)
     .join('g')
-    .attr(
-      'class',
-      (node) =>
-        `tree-node ${nodeMatchesSearch(node.data, searchText) ? 'search-match' : 'search-dim'}`,
-    )
-    // TODO: decide whether it should be left->right or top->down: .attr('transform', (node) => `translate(${node.x}, ${node.y})`)
+    .attr('class', (node) => {
+      if (!searchText.trim()) {
+        return 'tree-node';
+      }
+      return `tree-node ${nodeMatchesSearch(node.data, searchText) ? 'search-match' : 'search-dim'}`;
+    })
+    // TODO: decide whether it should be left->right or top->down:
+    .attr('transform', (node) => `translate(${node.x}, ${node.y})`)
     .each(function (node) {
       createNode(d3.select<SVGGElement, unknown>(this), node, onRecipeChoiceChanged);
     });

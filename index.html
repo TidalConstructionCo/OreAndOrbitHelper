@@ -72,17 +72,17 @@
         transition: opacity 0.2s ease;
       }
 
-      .node.search-dim {
+      .tree-node.search-dim {
         opacity: 0.25;
       }
 
-      .node.search-match rect {
+      .tree-node.search-match rect {
         stroke: #ffd54f;
         stroke-width: 5px;
         filter: drop-shadow(0 0 8px #ffd54f);
       }
 
-      .node.search-match text {
+      .tree-node.search-match text {
         font-weight: 700;
       }
 
@@ -381,6 +381,50 @@
 
       .tool-content[hidden] {
         display: none;
+      }
+
+      .tree-node rect {
+        stroke-width: 2px;
+      }
+
+      .recipe-node {
+        fill: #315d91;
+        stroke: #6ea8dc;
+      }
+
+      .raw-material-node {
+        fill: #285c38;
+        stroke: #7cc576;
+      }
+
+      .tree-node .node-content {
+        color: white;
+        font-family: system-ui, sans-serif;
+      }
+
+      .tree-node .node-line {
+        color: white;
+        font-family: system-ui, sans-serif;
+      }
+
+      .tree-node .material {
+        font-weight: 700;
+        font-size: 14px;
+      }
+
+      .tree-node .details {
+        font-size: 12px;
+        opacity: 0.9;
+      }
+
+      .tree-node select {
+        width: 220px;
+        box-sizing: border-box;
+        margin-top: 5px;
+        padding: 2px 4px;
+        font:
+          12px system-ui,
+          sans-serif;
       }
     </style>
   </head>
