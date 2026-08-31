@@ -9,7 +9,7 @@ export type CraftingTree = {
   root: TreeNode;
 };
 
-type RawMaterialNode = TreeNodeBase & {
+export type RawMaterialNode = TreeNodeBase & {
   material: Material;
   kind: 'rawMaterial';
 };
@@ -20,7 +20,12 @@ export type RecipeNode = TreeNodeBase & {
   durationPerCycle: number;
   outputAmount: number;
   recipe: Recipe;
+  recipeChoices: Recipe[];
   children: TreeNode[];
+  targetMaterial: Material;
+  totalCycles: number;
+  totalDuration: number;
+  utilization: number;
 };
 
 export type TreeNode = RawMaterialNode | RecipeNode;

@@ -9,7 +9,6 @@ import { formatAmountNew, formatPercentNew } from './formatting';
 export function renderCraftingTreeNew(
   treeElement: HTMLElement,
   rootNode: TreeNodeNew,
-  // recipeChoices: ReadonlyMap<string, number>,
   searchText: string,
   recipes: Recipe[],
   onRecipeChoiceChanged: (material: string) => void,
