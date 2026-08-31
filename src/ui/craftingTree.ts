@@ -1,30 +1,36 @@
-import d3, { HierarchyPointNode, Selection } from 'd3';
-import { Recipe } from '../api-access';
-import { RawMaterialNode, RecipeNode, TreeNode } from '../domain/craftingTree/craftingTree';
+import * as d3 from 'd3';
+import type { HierarchyPointLink, HierarchyPointNode, Selection } from 'd3';
+import type { Recipe } from '../api-access';
+import type { RawMaterialNode, RecipeNode, TreeNode } from '../domain/craftingTree/craftingTree';
 import { formatAmountNew } from './formatting';
 
-type NodeGroup = d3.Selection<SVGGElement, unknown, null, undefined>;
+type NodeGroup = Selection<SVGGElement, unknown, null, undefined>;
+type ContentSelection = Selection<HTMLDivElement, unknown, null, undefined>;
 
-function createTree(
+// TODO: choose correct css classes etc
+export function createTree(
   treeElement: HTMLElement,
   rootNode: TreeNode,
   searchText: string,
-  recipes: Recipe,
   onRecipeChoiceChanged: (path: string, recipe: Recipe) => void,
-) {
+): void {
+  // TODO: add the correct class to nodes based on the search text (search is mainly interested in the material name in the first line of the node)
+  //   if (nodeMatchesSearch(node, searchText)) {
+  //     className += ' search-match';
+  //   } else {
+  //     className += ' search-dim';
+  //   }
   treeElement.replaceChildren();
 
   const treeWidth = Math.max(treeElement.clientWidth, 320);
   const treeHeight = Math.max(treeElement.clientHeight, 320);
-
-  const root = d3.hierarchy<TreeNode>(rootNode);
 
   const treeLayout = d3
     .tree<TreeNode>()
     .nodeSize([280, 130])
     .separation((a, b) => (a.parent === b.parent ? 1.4 : 2));
 
-  treeLayout(root);
+  const root = treeLayout(d3.hierarchy<TreeNode>(rootNode));
 
   const nodes = root.descendants();
   const links = root.links();
@@ -42,60 +48,71 @@ function createTree(
     .append<SVGSVGElement>('svg')
     .attr('width', contentWidth)
     .attr('height', contentHeight)
-    .attr('viewBox', `0 0 ${contentWidth} ${contentHeight}`);
+    .attr('viewBox', `0 0 ${contentWidth} ${contentHeight}`)
+    .style('max-width', '100%')
+    .style('height', 'auto');
 
-  const zoomLayer = svg.append('g').attr('transform', `translate(${170 - (minX ?? 0)}, 80)`);
+  const zoomLayer = svg.append<SVGGElement>('g');
 
-  const zoom = d3
-    .zoom<SVGSVGElement, unknown>()
-    // Allows zooming much farther in and out.
-    .scaleExtent([0.15, 8])
-    .on('zoom', (event) => {
-      zoomLayer.attr('transform', event.transform);
-    });
-
-  svg.call(zoom);
+  const linkLayer = zoomLayer.append<SVGGElement>('g').attr('class', 'links');
+  const nodeLayer = zoomLayer.append<SVGGElement>('g').attr('class', 'nodes');
 
   const linkGenerator = d3
-    .linkVertical<d3.HierarchyLink<TreeNode>, d3.HierarchyNode<TreeNode>>()
-    .x((node) => node.x ?? 0)
-    .y((node) => node.y ?? 0);
+    .linkVertical<HierarchyPointLink<TreeNode>, HierarchyPointNode<TreeNode>>()
+    .x((node) => node.x)
+    .y((node) => node.y);
 
-  zoomLayer
-    .append('g')
-    .selectAll<SVGPathElement, d3.HierarchyPointLink<TreeNode>>('path')
+  linkLayer
+    .selectAll<SVGPathElement, HierarchyPointLink<TreeNode>>('path')
     .data(links)
     .join('path')
     .attr('class', 'link')
     .attr('d', linkGenerator);
 
-    createNode(zoomLayer, , onRecipeChoiceChanged);
+  nodeLayer
+    .selectAll<SVGGElement, HierarchyPointNode<TreeNode>>('g')
+    .data(nodes)
+    .join('g')
+    .attr('class', 'tree-node')
+    .attr('transform', (node) => `translate(${node.x}, ${node.y})`)
+    .each(function (node) {
+      createNode(d3.select<SVGGElement, unknown>(this), node, onRecipeChoiceChanged);
+    });
+
+  const initialTransform = d3.zoomIdentity.translate(170 - (minX ?? 0), 80);
+
+  const zoom = d3
+    .zoom<SVGSVGElement, unknown>()
+    .scaleExtent([0.15, 8])
+    .on('zoom', (event) => {
+      zoomLayer.attr('transform', event.transform);
+    });
+
+  svg.call(zoom).call(zoom.transform, initialTransform);
 }
 
-// TODO: select correct CSS classes etc
 function createNode(
   nodeGroup: NodeGroup,
   node: HierarchyPointNode<TreeNode>,
   onRecipeChoiceChanged: (path: string, recipe: Recipe) => void,
-) {
-  const kind = node.data.kind;
-  switch (kind) {
-    case 'rawMaterial': {
+): void {
+  switch (node.data.kind) {
+    case 'rawMaterial':
       createRawMaterialNode(nodeGroup, node.data);
       break;
-    }
-    case 'recipe': {
+
+    case 'recipe':
       createRecipeNode(nodeGroup, node.data, onRecipeChoiceChanged);
       break;
-    }
+
     default: {
-      const exhaustiveCheck: never = kind;
-      console.log(exhaustiveCheck);
+      const exhaustiveCheck: never = node.data;
+      throw new Error(`Unsupported tree node: ${String(exhaustiveCheck)}`);
     }
   }
 }
 
-function createRawMaterialNode(nodeGroup: NodeGroup, node: RawMaterialNode) {
+function createRawMaterialNode(nodeGroup: NodeGroup, node: RawMaterialNode): void {
   const nodeWidth = 180;
   const nodeHeight = 64;
 
@@ -110,7 +127,12 @@ function createRawMaterialNode(nodeGroup: NodeGroup, node: RawMaterialNode) {
     .attr('class', 'raw-material-node');
 
   nodeGroup
-    .append('div')
+    .append('foreignObject')
+    .attr('x', -nodeWidth / 2 + 8)
+    .attr('y', -nodeHeight / 2 + 8)
+    .attr('width', nodeWidth - 16)
+    .attr('height', nodeHeight - 16)
+    .append<HTMLDivElement>('xhtml:div')
     .attr('class', 'node-line material')
     .attr('text-anchor', 'middle')
     .text(`${node.targetAmount}x ${node.material.name}`);
@@ -120,7 +142,7 @@ function createRecipeNode(
   nodeGroup: NodeGroup,
   node: RecipeNode,
   onRecipeChoiceChanged: (path: string, recipe: Recipe) => void,
-) {
+): void {
   const nodeWidth = 240;
   const nodeHeight = 132;
 
@@ -131,7 +153,8 @@ function createRecipeNode(
     .attr('width', nodeWidth)
     .attr('height', nodeHeight)
     .attr('rx', 10)
-    .attr('ry', 10);
+    .attr('ry', 10)
+    .attr('class', 'recipe-node');
 
   const content = nodeGroup
     .append('foreignObject')
@@ -156,33 +179,38 @@ function createRecipeNode(
   content
     .append('div')
     .attr('class', 'node-line details')
-    .text(() => {
-      return `${formatAmountNew(node.totalCycles)} cycles (${formatAmountNew(node.totalDuration)} min)`;
-    });
+    .text(
+      `${formatAmountNew(node.totalCycles)} cycles ` +
+        `(${formatAmountNew(node.totalDuration)} min)`,
+    );
 
   content.append('div').attr('class', 'node-line details').text(`${node.utilization}% utilization`);
 }
 
 function appendRecipeSelection(
-  content: Selection<HTMLDivElement, unknown, null, undefined>,
+  content: ContentSelection,
   node: RecipeNode,
   onRecipeChoiceChanged: (path: string, recipe: Recipe) => void,
-) {
+): void {
   const choiceLine = content.append('div').attr('class', 'node-line');
+
   choiceLine
     .append('select')
     .attr('class', 'recipe-select')
     .on('mousedown', (event) => event.stopPropagation())
     .on('pointerdown', (event) => event.stopPropagation())
     .on('click', (event) => event.stopPropagation())
-    .on('change', function () {
+    .on('change', function (event) {
+      event.stopPropagation();
+
       const selectedIndex = Number(this.value);
       const selectedRecipe = node.recipeChoices[selectedIndex];
+
       if (selectedRecipe) {
         onRecipeChoiceChanged(node.path.join('>'), selectedRecipe);
       }
     })
-    .selectAll('option')
+    .selectAll<HTMLOptionElement, Recipe>('option')
     .data(node.recipeChoices)
     .join('option')
     .attr('value', (_, index) => String(index))
@@ -190,15 +218,17 @@ function appendRecipeSelection(
     .text(formatRecipe);
 }
 
-function appendRecipeDisplay(
-  content: Selection<HTMLDivElement, unknown, null, undefined>,
-  node: RecipeNode,
-) {
+function appendRecipeDisplay(content: ContentSelection, node: RecipeNode): void {
   const choiceLine = content.append('div').attr('class', 'node-line node-line-empty');
+
   choiceLine.append('div').text(formatRecipe(node.recipe));
 }
 
+// TODO: use actual formatting with icons etc
 function formatRecipe(recipe: Recipe): string {
-  // TODO: use material name instead of material
-  return `${recipe.inputs.map((input) => input.material).join(' + ')} → ${recipe.output.material + (recipe.byproduct ? ` ${recipe.byproduct.material}` : '')}`;
+  const inputs = recipe.inputs.map((input) => input.material).join(' + ');
+
+  const output = recipe.output.material + (recipe.byproduct ? ` ${recipe.byproduct.material}` : '');
+
+  return `${inputs} → ${output}`;
 }
