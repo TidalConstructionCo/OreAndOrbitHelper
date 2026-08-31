@@ -21,7 +21,7 @@ export function renderCraftingTree(
 
   const treeLayout = d3
     .tree<TreeNode>()
-    .nodeSize([280, 130])
+    .nodeSize([300, 175])
     .separation((a, b) => (a.parent === b.parent ? 1.4 : 2));
 
   const root = treeLayout(d3.hierarchy<TreeNode>(rootNode));
@@ -126,16 +126,21 @@ function createRawMaterialNode(nodeGroup: NodeGroup, node: RawMaterialNode): voi
     .attr('ry', 10)
     .attr('class', 'raw-material-node');
 
-  nodeGroup
+  const content = nodeGroup
     .append('foreignObject')
     .attr('x', -nodeWidth / 2 + 8)
     .attr('y', -nodeHeight / 2 + 8)
     .attr('width', nodeWidth - 16)
     .attr('height', nodeHeight - 16)
     .append<HTMLDivElement>('xhtml:div')
+    .attr('class', 'node-content');
+
+  content
+    .append('div')
     .attr('class', 'node-line material')
-    .attr('text-anchor', 'middle')
     .text(`${node.targetAmount}x ${node.material.name}`);
+
+  content.append('div').attr('class', 'node-line details').text('Raw material');
 }
 
 function createRecipeNode(
@@ -143,8 +148,8 @@ function createRecipeNode(
   node: RecipeNode,
   onRecipeChoiceChanged: (path: string, recipe: Recipe) => void,
 ): void {
-  const nodeWidth = 240;
-  const nodeHeight = 132;
+  const nodeWidth = 270;
+  const nodeHeight = 154;
 
   nodeGroup
     .append('rect')
@@ -219,9 +224,9 @@ function appendRecipeSelection(
 }
 
 function appendRecipeDisplay(content: ContentSelection, node: RecipeNode): void {
-  const choiceLine = content.append('div').attr('class', 'node-line node-line-empty');
+  const choiceLine = content.append('div').attr('class', 'node-line recipe-choice-line');
 
-  choiceLine.append('div').text(formatRecipe(node.recipe));
+  choiceLine.append('div').attr('class', 'recipe-line').text(formatRecipe(node.recipe));
 }
 
 // TODO: use actual formatting with icons etc
