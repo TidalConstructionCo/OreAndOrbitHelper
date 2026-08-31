@@ -7,19 +7,13 @@ import { formatAmountNew } from './formatting';
 type NodeGroup = Selection<SVGGElement, unknown, null, undefined>;
 type ContentSelection = Selection<HTMLDivElement, unknown, null, undefined>;
 
-// TODO: choose correct css classes etc
+// TODO: try to replace tree with this one
 export function createTree(
   treeElement: HTMLElement,
   rootNode: TreeNode,
   searchText: string,
   onRecipeChoiceChanged: (path: string, recipe: Recipe) => void,
 ): void {
-  // TODO: add the correct class to nodes based on the search text (search is mainly interested in the material name in the first line of the node)
-  //   if (nodeMatchesSearch(node, searchText)) {
-  //     className += ' search-match';
-  //   } else {
-  //     className += ' search-dim';
-  //   }
   treeElement.replaceChildren();
 
   const treeWidth = Math.max(treeElement.clientWidth, 320);
