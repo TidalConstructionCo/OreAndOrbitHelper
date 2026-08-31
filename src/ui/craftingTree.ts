@@ -73,8 +73,12 @@ export function createTree(
     .selectAll<SVGGElement, HierarchyPointNode<TreeNode>>('g')
     .data(nodes)
     .join('g')
-    .attr('class', 'tree-node')
-    .attr('transform', (node) => `translate(${node.x}, ${node.y})`)
+    .attr(
+      'class',
+      (node) =>
+        `tree-node ${nodeMatchesSearch(node.data, searchText) ? 'search-match' : 'search-dim'}`,
+    )
+    // TODO: decide whether it should be left->right or top->down: .attr('transform', (node) => `translate(${node.x}, ${node.y})`)
     .each(function (node) {
       createNode(d3.select<SVGGElement, unknown>(this), node, onRecipeChoiceChanged);
     });
@@ -231,4 +235,32 @@ function formatRecipe(recipe: Recipe): string {
   const output = recipe.output.material + (recipe.byproduct ? ` ${recipe.byproduct.material}` : '');
 
   return `${inputs} → ${output}`;
+}
+
+function nodeMatchesSearch(node: TreeNode, searchText: string): boolean {
+  const normalizedSearchText = searchText.trim().toLowerCase();
+
+  // An empty search should not dim any nodes.
+  if (!normalizedSearchText) {
+    return true;
+  }
+
+  let materialName: string;
+
+  switch (node.kind) {
+    case 'rawMaterial':
+      materialName = node.material.name;
+      break;
+
+    case 'recipe':
+      materialName = node.targetMaterial.name;
+      break;
+
+    default: {
+      const exhaustiveCheck: never = node;
+      throw new Error(`Unsupported tree node: ${String(exhaustiveCheck)}`);
+    }
+  }
+
+  return materialName.toLowerCase().includes(normalizedSearchText);
 }
