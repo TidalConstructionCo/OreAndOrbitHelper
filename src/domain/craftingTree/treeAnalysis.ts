@@ -46,6 +46,9 @@ function getSummedRawItemsRecursive(
     );
     return;
   }
+  if (node.kind === 'sourced') {
+    return;
+  }
   const multiplier = node.totalCycles;
   for (const child of node.children) {
     getSummedRawItemsRecursive(child, result, currentMultiplier * multiplier);
@@ -112,7 +115,7 @@ export type RecipeUtilization = Map<Recipe, number>;
 export function getSummedUtilization(tree: CraftingTree): RecipeUtilization {
   const utilization: RecipeUtilization = new Map();
   const node = tree.root;
-  if (node.kind === 'rawMaterial') {
+  if (node.kind === 'rawMaterial' || node.kind === 'sourced') {
     return utilization;
   }
   recurseUtilization(node.durationPerCycle, node, utilization);
@@ -120,7 +123,7 @@ export function getSummedUtilization(tree: CraftingTree): RecipeUtilization {
 }
 
 function recurseUtilization(rootDuration: number, node: TreeNode, utilization: RecipeUtilization) {
-  if (node.kind === 'rawMaterial') {
+  if (node.kind === 'rawMaterial' || node.kind === 'sourced') {
     return;
   }
 

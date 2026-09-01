@@ -393,6 +393,7 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
     state.gameData.materialData.data,
     state.gameData.recipeData.data,
     state.craftingTree.recipeChoices,
+    state.craftingTree.sourcedMaterials,
   );
   if (!tree) {
     return;
