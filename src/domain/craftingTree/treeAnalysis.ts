@@ -62,7 +62,6 @@ export function getExtractorRequirements(
   const rawMaterials = getSummedRawItems(tree);
   const result: Map<Material, number> = new Map();
   if (tree.root.kind !== 'recipe') {
-    // TODO
     const extractionRecipe = extractionRecipes.find(
       (r) => r.material === tree.root.targetMaterial.id,
     );

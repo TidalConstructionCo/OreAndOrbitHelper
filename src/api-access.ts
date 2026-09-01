@@ -80,7 +80,7 @@ export const RecipesResponseSchema = z.object({
   data: z.array(RecipeSchema),
 });
 
-export type RecipeOutput = z.infer<typeof RecipeOutputSchema>;
+// type RecipeOutput = z.infer<typeof RecipeOutputSchema>;
 export type Recipe = z.infer<typeof RecipeSchema>;
 export type RecipesResponse = z.infer<typeof RecipesResponseSchema>;
 

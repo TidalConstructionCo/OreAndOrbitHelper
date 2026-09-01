@@ -35,7 +35,6 @@ export type TreeNode = RawMaterialNode | RecipeNode;
  */
 export type TreePath = string;
 
-// TODO: possibly problematic due to array identity => options? Worst case, fall back to string via concatenation
 export type RecipeChoices = Map<TreePath, Recipe>;
 
 export function buildTree(
@@ -87,36 +86,6 @@ function createRootNode(
     rootDuration,
   );
 }
-
-// function createTreeNode(
-//   targetMaterial: Material,
-//   targetAmount: number,
-//   availableMaterials: Material[],
-//   availableRecipes: Recipe[],
-//   recipeChoices: RecipeChoices,
-//   currentPath: TreePath,
-// ): TreeNode {
-//   const recipe = selectProducingRecipe(
-//     targetMaterial,
-//     availableRecipes,
-//     recipeChoices,
-//     currentPath,
-//   );
-//   if (!recipe) {
-//     return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
-//   }
-
-//   return createRecipeNode(
-//     currentPath,
-//     recipe,
-//     availableMaterials,
-//     availableRecipes,
-//     recipeChoices,
-//     targetAmount,
-//     targetMaterial,
-//     rootDurationMinutes,
-//   );
-// }
 
 function createTreeNodeRecursive(
   targetMaterial: Material,
@@ -182,7 +151,6 @@ function createRecipeNode(
   targetMaterial: Material,
   rootDurationMinutes: number,
 ): RecipeNode {
-  // TODO: fix byproducts
   const outputAmount =
     recipe.byproduct && recipe.byproduct.material === targetMaterial.id
       ? recipe.byproduct.qty

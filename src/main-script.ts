@@ -15,8 +15,7 @@
  * - sort numeric values
  */
 import { API_KEY_STORAGE_KEY, getApiKey, initializeApiPageNew } from './api-key.js';
-import { buildCraftingTreeNew } from './domain/craftingTreeNew';
-import { renderSummary, renderSummaryNew } from './ui/summary';
+import { renderSummary } from './ui/summary';
 import {
   ExtractionResponseSchema,
   getExtraction,
@@ -28,7 +27,6 @@ import {
 } from './api-access';
 import { CACHE_KEYS, loadCache, saveToCache } from './cache';
 import { AppState, createInitialState, GameData, MaterialId, TabId } from './app/newState';
-import { renderCraftingTreeNew } from './ui/craftingTreeNew';
 import { renderExtractorSettingsNew } from './ui/extractorSettings.js';
 import { buildTree } from './domain/craftingTree/craftingTree.js';
 import { renderCraftingTree } from './ui/craftingTree.js';
