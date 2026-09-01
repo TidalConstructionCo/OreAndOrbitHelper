@@ -26,7 +26,7 @@ import {
   RecipesResponseSchema,
 } from './api-access';
 import { CACHE_KEYS, loadCache, saveToCache } from './cache';
-import { AppState, createInitialState, GameData, MaterialId, TabId } from './app/newState';
+import { AppState, createInitialState, GameData, MaterialId, TabId } from './app/state.js';
 import { renderExtractorSettingsNew } from './ui/extractorSettings.js';
 import { buildTree } from './domain/craftingTree/craftingTree.js';
 import { renderCraftingTree } from './ui/craftingTree.js';

@@ -1,5 +1,5 @@
 import { Extraction, Material, Recipe } from '../../api-access';
-import { MaterialId } from '../../app/newState';
+import { MaterialId } from '../../app/state';
 import { CraftingTree, RecipeNode, TreeNode } from './craftingTree';
 
 /**
