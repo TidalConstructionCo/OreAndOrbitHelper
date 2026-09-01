@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 import type { HierarchyPointLink, HierarchyPointNode, Selection } from 'd3';
 import type { Recipe } from '../api-access';
 import type { RawMaterialNode, RecipeNode, TreeNode } from '../domain/craftingTree/craftingTree';
-import { formatAmountNew } from './formatting';
+import { formatAmountNew, formatPercentNew } from './formatting';
 
 type NodeGroup = Selection<SVGGElement, unknown, null, undefined>;
 type ContentSelection = Selection<HTMLDivElement, unknown, null, undefined>;
@@ -189,7 +189,10 @@ function createRecipeNode(
         `(${formatAmountNew(node.totalDuration)} min)`,
     );
 
-  content.append('div').attr('class', 'node-line details').text(`${node.utilization}% utilization`);
+  content
+    .append('div')
+    .attr('class', 'node-line details')
+    .text(`${formatPercentNew(node.utilization)} utilization`);
 }
 
 function appendRecipeSelection(
@@ -231,9 +234,11 @@ function appendRecipeDisplay(content: ContentSelection, node: RecipeNode): void 
 
 // TODO: use actual formatting with icons etc
 function formatRecipe(recipe: Recipe): string {
-  const inputs = recipe.inputs.map((input) => input.material).join(' + ');
+  const inputs = recipe.inputs.map((input) => `${input.qty}x ${input.material}`).join(' + ');
 
-  const output = recipe.output.material + (recipe.byproduct ? ` ${recipe.byproduct.material}` : '');
+  const output =
+    `${recipe.output.qty}x ${recipe.output.material}` +
+    (recipe.byproduct ? ` ${recipe.byproduct.material}x ${recipe.byproduct.material}` : '');
 
   return `${inputs} → ${output}`;
 }

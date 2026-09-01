@@ -45,7 +45,7 @@ export function buildTree(
   recipeChoices: RecipeChoices,
 ): CraftingTree {
   const path: TreePath = targetMaterial.id;
-  const root = createTreeNode(
+  const root = createRootNode(
     targetMaterial,
     1,
     availableMaterials,
@@ -57,13 +57,75 @@ export function buildTree(
   return { root };
 }
 
-function createTreeNode(
+function createRootNode(
   targetMaterial: Material,
   targetAmount: number,
   availableMaterials: Material[],
   availableRecipes: Recipe[],
   recipeChoices: RecipeChoices,
   currentPath: TreePath,
+): TreeNode {
+  const recipe = selectProducingRecipe(
+    targetMaterial,
+    availableRecipes,
+    recipeChoices,
+    currentPath,
+  );
+  if (!recipe) {
+    return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
+  }
+
+  const rootDuration = recipe.batch_minutes;
+  return createRecipeNode(
+    currentPath,
+    recipe,
+    availableMaterials,
+    availableRecipes,
+    recipeChoices,
+    targetAmount,
+    targetMaterial,
+    rootDuration,
+  );
+}
+
+// function createTreeNode(
+//   targetMaterial: Material,
+//   targetAmount: number,
+//   availableMaterials: Material[],
+//   availableRecipes: Recipe[],
+//   recipeChoices: RecipeChoices,
+//   currentPath: TreePath,
+// ): TreeNode {
+//   const recipe = selectProducingRecipe(
+//     targetMaterial,
+//     availableRecipes,
+//     recipeChoices,
+//     currentPath,
+//   );
+//   if (!recipe) {
+//     return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
+//   }
+
+//   return createRecipeNode(
+//     currentPath,
+//     recipe,
+//     availableMaterials,
+//     availableRecipes,
+//     recipeChoices,
+//     targetAmount,
+//     targetMaterial,
+//     rootDurationMinutes,
+//   );
+// }
+
+function createTreeNodeRecursive(
+  targetMaterial: Material,
+  targetAmount: number,
+  availableMaterials: Material[],
+  availableRecipes: Recipe[],
+  recipeChoices: RecipeChoices,
+  currentPath: TreePath,
+  rootDurationMinutes: number,
 ): TreeNode {
   const recipe = selectProducingRecipe(
     targetMaterial,
@@ -83,6 +145,7 @@ function createTreeNode(
     recipeChoices,
     targetAmount,
     targetMaterial,
+    rootDurationMinutes,
   );
 }
 
@@ -117,20 +180,23 @@ function createRecipeNode(
   recipeChoices: RecipeChoices,
   targetAmount: number,
   targetMaterial: Material,
+  rootDurationMinutes: number,
 ): RecipeNode {
+  // TODO: fix byproducts
+  const outputAmount =
+    recipe.byproduct && recipe.byproduct.material === 'TODO: add id'
+      ? recipe.byproduct.qty
+      : recipe.output.qty;
+  const recipeDurationMinutes = (targetAmount / outputAmount) * recipe.batch_minutes;
+  const utilization = recipeDurationMinutes / rootDurationMinutes;
   const node: RecipeNode = {
     kind: 'recipe',
     recipe: recipe,
     path: path,
     durationPerCycle: recipe.batch_minutes,
-    outputAmount:
-      // TODO: fix
-      recipe.byproduct && recipe.byproduct.material === 'TODO: add id'
-        ? recipe.byproduct.qty
-        : recipe.output.qty,
+    outputAmount: outputAmount,
     targetAmount: targetAmount,
-    // TODO: fix utilization
-    utilization: 0,
+    utilization: utilization,
     recipeChoices: getProducingRecipes(targetMaterial, availableRecipes),
     targetMaterial,
     // TODO: fix cycles
@@ -143,13 +209,14 @@ function createRecipeNode(
         return [];
       }
       return [
-        createTreeNode(
+        createTreeNodeRecursive(
           material,
           input.qty,
           availableMaterials,
           availableRecipes,
           recipeChoices,
           `${path}>${material.id}`,
+          rootDurationMinutes,
         ),
       ];
     }),
