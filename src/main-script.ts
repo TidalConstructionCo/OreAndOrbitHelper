@@ -359,10 +359,6 @@ function renderMaterialSelect(state: AppState, select: HTMLSelectElement) {
   } else {
     select.selectedIndex = 0;
   }
-
-  // select.onchange = () => {
-  //   onTargetChanged(select.value);
-  // };
 }
 
 function renderCraftingTreeInputs(state: AppState) {
@@ -374,8 +370,6 @@ function renderCraftingTreeInputs(state: AppState) {
 
 function updateRecipeSelection(state: AppState, path: string, recipe: Recipe): AppState {
   const newChoices = new Map(state.craftingTree.recipeChoices);
-  // TODO: use string instead of array, this wont work for identity stuff
-  // const pathParts = path.split('>');
   newChoices.set(path, recipe);
   return {
     ...state,
@@ -400,14 +394,11 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
     state.gameData.recipeData.data,
     state.craftingTree.recipeChoices,
   );
-  // const tree = buildCraftingTreeNew(state);
   if (!tree) {
     return;
   }
 
-  // TODO: handle the change event of recipe select similarly to the extractor settings one
   renderCraftingTree(
-    // renderCraftingTreeNew(
     treeElement,
     tree.root,
     state.craftingTree.searchText ?? '',
@@ -416,15 +407,12 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
       update(newState);
     },
   );
-  // render extraction settings
   const extractorSettingsContainer = parent.querySelector<HTMLElement>('.extractor-settings');
   if (extractorSettingsContainer) {
     renderExtractorSettingsNew(state, extractorSettingsContainer);
   }
   const summary = document.getElementById('summary');
   if (summary) {
-    // TODO: adapt summary for new tree
-    // renderSummaryNew(tree, summary);
     renderSummary(
       tree,
       getSummedRawItems(tree),
