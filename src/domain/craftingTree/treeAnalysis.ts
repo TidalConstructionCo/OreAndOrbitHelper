@@ -1,5 +1,5 @@
 import { Extraction, Material, Recipe } from '../../api-access';
-import { GameData, MaterialId } from '../../app/newState';
+import { MaterialId } from '../../app/newState';
 import { CraftingTree, RecipeNode, TreeNode } from './craftingTree';
 
 /**
@@ -7,7 +7,7 @@ import { CraftingTree, RecipeNode, TreeNode } from './craftingTree';
  *
  * May be a fraction.
  */
-export function getRequiredCycles(node: RecipeNode): number {
+function getRequiredCycles(node: RecipeNode): number {
   return node.targetAmount / node.outputAmount;
 }
 
@@ -16,36 +16,92 @@ export function getRequiredCycles(node: RecipeNode): number {
  *
  * The active time is the fraction or multiple of the recipe time required to produce the target amount.
  */
-export function getActiveTimeMinutes(node: RecipeNode): number {
+function getActiveTimeMinutes(node: RecipeNode): number {
   return node.durationPerCycle * getRequiredCycles(node);
 }
 
 // TODO: test?
+// TODO: this is incorrect, because the factors arent multiplied down the tree
+// This currently sums only the amounts needed for 1 cycle for each of the "root recipes".
+// export function getSummedRawItems2(tree: CraftingTree): Map<Material, number> {
+//   const result: Map<Material, number> = new Map();
+//   const remainingNodes = [tree.root];
+//   while (remainingNodes.length > 0) {
+//     const currentNode = remainingNodes.pop()!;
+//     const kind = currentNode.kind;
+//     switch (kind) {
+//       case 'rawMaterial': {
+//         result.set(
+//           currentNode.targetMaterial,
+//           (result.get(currentNode.targetMaterial) ?? 0) + currentNode.targetAmount,
+//         );
+//         break;
+//       }
+//       case 'recipe': {
+//         remainingNodes.push(...currentNode.children);
+//         break;
+//       }
+//       default: {
+//         const exhaustiveCheck: never = kind;
+//         throw new Error(`Unsupported kind ${exhaustiveCheck}`);
+//       }
+//     }
+//   }
+//   return result;
+// }
+
 export function getSummedRawItems(tree: CraftingTree): Map<Material, number> {
   const result: Map<Material, number> = new Map();
-  const remainingNodes = [tree.root];
-  while (remainingNodes.length > 0) {
-    const currentNode = remainingNodes.pop()!;
-    const kind = currentNode.kind;
-    switch (kind) {
-      case 'rawMaterial': {
-        result.set(
-          currentNode.targetMaterial,
-          (result.get(currentNode.targetMaterial) ?? 0) + currentNode.targetAmount,
-        );
-        break;
-      }
-      case 'recipe': {
-        remainingNodes.push(...currentNode.children);
-        break;
-      }
-      default: {
-        const exhaustiveCheck: never = kind;
-        throw new Error(`Unsupported kind ${exhaustiveCheck}`);
-      }
-    }
+  if (tree.root.kind === 'rawMaterial') {
+    result.set(tree.root.targetMaterial, tree.root.targetAmount);
+    return result;
   }
+
+  getSummedRawItemsRecursive(tree.root, result, 1);
   return result;
+}
+
+function getSummedRawItemsRecursive(
+  node: TreeNode,
+  result: Map<Material, number>,
+  currentMultiplier: number,
+): void {
+  if (node.kind === 'rawMaterial') {
+    // TODO
+    result.set(
+      node.targetMaterial,
+      (result.get(node.targetMaterial) ?? 0) + node.targetAmount * currentMultiplier,
+    );
+    return;
+  }
+  const multiplier = node.totalCycles;
+  for (const child of node.children) {
+    getSummedRawItemsRecursive(child, result, currentMultiplier * multiplier);
+  }
+  // const result: Map<Material, number> = new Map();
+  // const remainingNodes = [tree.root];
+  // while (remainingNodes.length > 0) {
+  //   const currentNode = remainingNodes.pop()!;
+  //   const kind = currentNode.kind;
+  //   switch (kind) {
+  //     case 'rawMaterial': {
+  //       result.set(
+  //         currentNode.targetMaterial,
+  //         (result.get(currentNode.targetMaterial) ?? 0) + currentNode.targetAmount,
+  //       );
+  //       break;
+  //     }
+  //     case 'recipe': {
+  //       remainingNodes.push(...currentNode.children);
+  //       break;
+  //     }
+  //     default: {
+  //       const exhaustiveCheck: never = kind;
+  //       throw new Error(`Unsupported kind ${exhaustiveCheck}`);
+  //     }
+  //   }
+  // }
+  // return result;
 }
 
 // TODO: move somewhere more fitting? Pass materials in instead of tree to reduce cost?

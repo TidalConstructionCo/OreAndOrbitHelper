@@ -184,10 +184,11 @@ function createRecipeNode(
 ): RecipeNode {
   // TODO: fix byproducts
   const outputAmount =
-    recipe.byproduct && recipe.byproduct.material === 'TODO: add id'
+    recipe.byproduct && recipe.byproduct.material === targetMaterial.id
       ? recipe.byproduct.qty
       : recipe.output.qty;
-  const recipeDurationMinutes = (targetAmount / outputAmount) * recipe.batch_minutes;
+  const totalCycles = targetAmount / outputAmount;
+  const recipeDurationMinutes = totalCycles * recipe.batch_minutes;
   const utilization = recipeDurationMinutes / rootDurationMinutes;
   const node: RecipeNode = {
     kind: 'recipe',
@@ -199,10 +200,8 @@ function createRecipeNode(
     utilization: utilization,
     recipeChoices: getProducingRecipes(targetMaterial, availableRecipes),
     targetMaterial,
-    // TODO: fix cycles
-    totalCycles: 1,
-    // TODO: fix duration
-    totalDuration: 1,
+    totalCycles: totalCycles,
+    totalDuration: recipeDurationMinutes,
     children: recipe.inputs.flatMap((input) => {
       const material = availableMaterials.find((material) => input.material === material.id);
       if (!material) {
