@@ -366,8 +366,8 @@ function renderCraftingTreeInputs(state: AppState) {
 function updateRecipeSelection(state: AppState, path: string, recipe: Recipe): AppState {
   const newChoices = new Map(state.craftingTree.recipeChoices);
   // TODO: use string instead of array, this wont work for identity stuff
-  const pathParts = path.split('>');
-  newChoices.set(pathParts, recipe);
+  // const pathParts = path.split('>');
+  newChoices.set(path, recipe);
   return {
     ...state,
     craftingTree: { ...state.craftingTree, recipeChoices: newChoices },

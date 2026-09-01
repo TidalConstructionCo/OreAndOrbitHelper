@@ -1,7 +1,7 @@
 import { Material, Recipe } from '../../api-access';
 
 type TreeNodeBase = {
-  path: MaterialId[];
+  path: TreePath;
   targetAmount: number;
 };
 
@@ -31,11 +31,12 @@ export type RecipeNode = TreeNodeBase & {
 export type TreeNode = RawMaterialNode | RecipeNode;
 
 // TODO: collect type helpers somewhere
-type PropertyType<T, K extends keyof T> = T[K];
+// type PropertyType<T, K extends keyof T> = T[K];
 
-type MaterialId = PropertyType<Material, 'id'>;
+// type MaterialId = PropertyType<Material, 'id'>;
 
-export type TreePath = MaterialId[];
+// export type TreePath = MaterialId[];
+export type TreePath = string;
 
 // TODO: possibly problematic due to array identity => options? Worst case, fall back to string via concatenation
 export type RecipeChoices = Map<TreePath, Recipe>;
@@ -46,7 +47,7 @@ export function buildTree(
   availableRecipes: Recipe[],
   recipeChoices: RecipeChoices,
 ): CraftingTree {
-  const path: TreePath = [targetMaterial.id];
+  const path: TreePath = targetMaterial.id;
   const root = createTreeNode(
     targetMaterial,
     1,
@@ -145,10 +146,14 @@ function createRecipeNode(
         return [];
       }
       return [
-        createTreeNode(material, input.qty, availableMaterials, availableRecipes, recipeChoices, [
-          ...path,
-          material.id,
-        ]),
+        createTreeNode(
+          material,
+          input.qty,
+          availableMaterials,
+          availableRecipes,
+          recipeChoices,
+          `${path}>${material.id}`,
+        ),
       ];
     }),
   };

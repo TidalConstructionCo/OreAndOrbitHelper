@@ -212,7 +212,7 @@ function appendRecipeSelection(
       const selectedRecipe = node.recipeChoices[selectedIndex];
 
       if (selectedRecipe) {
-        onRecipeChoiceChanged(node.path.join('>'), selectedRecipe);
+        onRecipeChoiceChanged(node.path, selectedRecipe);
       }
     })
     .selectAll<HTMLOptionElement, Recipe>('option')
