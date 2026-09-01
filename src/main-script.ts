@@ -15,20 +15,26 @@
  * - sort numeric values
  */
 import { API_KEY_STORAGE_KEY, getApiKey, initializeApiPageNew } from './api-key.js';
-import { buildCraftingTreeNew } from './domain/craftingTreeNew';
-import { renderSummaryNew } from './ui/summary';
+import { renderSummary } from './ui/summary';
 import {
   ExtractionResponseSchema,
   getExtraction,
   getMaterials,
   getRecipes,
   MaterialsResponseSchema,
+  Recipe,
   RecipesResponseSchema,
 } from './api-access';
 import { CACHE_KEYS, loadCache, saveToCache } from './cache';
 import { AppState, createInitialState, GameData, MaterialId, TabId } from './app/newState';
-import { renderCraftingTreeNew } from './ui/craftingTreeNew';
 import { renderExtractorSettingsNew } from './ui/extractorSettings.js';
+import { buildTree } from './domain/craftingTree/craftingTree.js';
+import { renderCraftingTree } from './ui/craftingTree.js';
+import {
+  getExtractorRequirements,
+  getSummedRawItems,
+  getSummedUtilization,
+} from './domain/craftingTree/treeAnalysis.js';
 
 let GLOBAL_STATE = createInitialState();
 const buttons = document.querySelectorAll<HTMLElement>('.tool-button');
@@ -178,6 +184,12 @@ function initialize() {
   let newState = { ...GLOBAL_STATE };
   newState = loadApiKey(newState);
   newState = loadCachedGameData(newState);
+  for (const material of newState.gameData.extractionData.data.map((e) => e.material)) {
+    newState = updateAvailability(newState, material, 5);
+  }
+  if (newState.craftingTree.targetMaterial === undefined) {
+    newState = updateSelectedTarget(newState, newState.gameData.materialData.data[0]?.id);
+  }
 
   initializeReloadDataButton();
   initializeSearchButton();
@@ -347,10 +359,6 @@ function renderMaterialSelect(state: AppState, select: HTMLSelectElement) {
   } else {
     select.selectedIndex = 0;
   }
-
-  // select.onchange = () => {
-  //   onTargetChanged(select.value);
-  // };
 }
 
 function renderCraftingTreeInputs(state: AppState) {
@@ -358,6 +366,15 @@ function renderCraftingTreeInputs(state: AppState) {
   if (targetSelect) {
     renderMaterialSelect(state, targetSelect);
   }
+}
+
+function updateRecipeSelection(state: AppState, path: string, recipe: Recipe): AppState {
+  const newChoices = new Map(state.craftingTree.recipeChoices);
+  newChoices.set(path, recipe);
+  return {
+    ...state,
+    craftingTree: { ...state.craftingTree, recipeChoices: newChoices },
+  };
 }
 
 function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
@@ -368,28 +385,45 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
   }
 
   renderCraftingTreeInputs(state);
-  const tree = buildCraftingTreeNew(state);
+  if (!state.craftingTree.targetMaterial) {
+    return;
+  }
+  const tree = buildTree(
+    state.craftingTree.targetMaterial,
+    state.gameData.materialData.data,
+    state.gameData.recipeData.data,
+    state.craftingTree.recipeChoices,
+  );
   if (!tree) {
     return;
   }
-  // TODO: handle the change event of recipe select similarly to the extractor settings one
-  renderCraftingTreeNew(
+
+  renderCraftingTree(
     treeElement,
     tree.root,
     state.craftingTree.searchText ?? '',
-    state.gameData.recipeData.data,
-    () => {
-      update(state);
+    (path: string, recipe: Recipe) => {
+      const newState = updateRecipeSelection(state, path, recipe);
+      update(newState);
     },
   );
-  // render extraction settings
   const extractorSettingsContainer = parent.querySelector<HTMLElement>('.extractor-settings');
   if (extractorSettingsContainer) {
     renderExtractorSettingsNew(state, extractorSettingsContainer);
   }
   const summary = document.getElementById('summary');
   if (summary) {
-    renderSummaryNew(tree, summary);
+    renderSummary(
+      tree,
+      getSummedRawItems(tree),
+      getSummedUtilization(tree),
+      summary,
+      getExtractorRequirements(
+        tree,
+        state.gameData.extractionData.data,
+        state.craftingTree.extractionYields,
+      ),
+    );
   }
 }
 

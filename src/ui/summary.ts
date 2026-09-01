@@ -1,7 +1,15 @@
-import { CraftingTreeNew, TreeNodeNew } from '../domain/craftingTreeNew';
+import { Material } from '../api-access';
+import { CraftingTree } from '../domain/craftingTree/craftingTree';
+import { RecipeUtilization } from '../domain/craftingTree/treeAnalysis';
 import { formatAmount, formatAmountNew, formatPercentNew, formatRecipeNew } from './formatting';
 
-export function renderSummaryNew(tree: CraftingTreeNew, summaryElement: HTMLElement) {
+export function renderSummary(
+  tree: CraftingTree,
+  rawItemAmounts: Map<Material, number>,
+  utilization: RecipeUtilization,
+  summaryElement: HTMLElement,
+  extractorRequirements: Map<Material, number>,
+) {
   summaryElement.replaceChildren();
 
   const rawPanel = document.createElement('div');
@@ -13,9 +21,9 @@ export function renderSummaryNew(tree: CraftingTreeNew, summaryElement: HTMLElem
 
   const rawList = document.createElement('ul');
 
-  for (const [material, amount] of Object.entries(tree.rawMaterials)) {
+  for (const [material, amount] of rawItemAmounts) {
     const item = document.createElement('li');
-    item.textContent = `${formatAmountNew(amount)}x ${material}`;
+    item.textContent = `${formatAmountNew(amount)}x ${material.name}`;
     rawList.appendChild(item);
   }
 
@@ -35,7 +43,7 @@ export function renderSummaryNew(tree: CraftingTreeNew, summaryElement: HTMLElem
   utilizationPanel.appendChild(utilizationTitle);
 
   const utilizationList = document.createElement('ul');
-  const recipeTotals = summedRecipeUtilizationNew(tree.root);
+  const recipeTotals = utilization;
 
   for (const [recipe, utilization] of recipeTotals) {
     const item = document.createElement('li');
@@ -56,15 +64,14 @@ export function renderSummaryNew(tree: CraftingTreeNew, summaryElement: HTMLElem
   extractorPanel.className = 'panel';
 
   const extractorTitle = document.createElement('h2');
-  extractorTitle.textContent = `Extractors needed to supply one ${tree.root.material} chain permanently`;
+  extractorTitle.textContent = `Extractors needed to supply one ${tree.root.targetMaterial} chain permanently`;
   extractorPanel.appendChild(extractorTitle);
 
   const extractorList = document.createElement('ul');
 
-  for (const requirement of tree.extractorRequirements) {
+  for (const [material, extractorCount] of extractorRequirements) {
     const item = document.createElement('li');
-    item.textContent =
-      `${formatAmount(requirement.extractors)}x ` + `${requirement.material} extractor`;
+    item.textContent = `${formatAmount(extractorCount)}x ` + `${material.name} extractor`;
     extractorList.appendChild(item);
   }
 
@@ -74,24 +81,6 @@ export function renderSummaryNew(tree: CraftingTreeNew, summaryElement: HTMLElem
 
   extractorPanel.appendChild(extractorList);
   summaryElement.appendChild(extractorPanel);
-}
-
-function summedRecipeUtilizationNew(rootNode: TreeNodeNew) {
-  const totals = new Map();
-
-  function visit(node: TreeNodeNew) {
-    if (!node.isRaw && !node.cycleDetected && node.recipe && node.utilization != null) {
-      const current = totals.get(node.recipe) ?? 0;
-      totals.set(node.recipe, current + node.utilization);
-    }
-
-    for (const child of node.children) {
-      visit(child);
-    }
-  }
-
-  visit(rootNode);
-  return totals;
 }
 
 function appendEmptyMessage(list: HTMLUListElement) {

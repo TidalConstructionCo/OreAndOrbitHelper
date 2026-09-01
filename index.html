@@ -72,17 +72,17 @@
         transition: opacity 0.2s ease;
       }
 
-      .node.search-dim {
+      .tree-node.search-dim {
         opacity: 0.25;
       }
 
-      .node.search-match rect {
+      .tree-node.search-match rect {
         stroke: #ffd54f;
         stroke-width: 5px;
         filter: drop-shadow(0 0 8px #ffd54f);
       }
 
-      .node.search-match text {
+      .tree-node.search-match text {
         font-weight: 700;
       }
 
@@ -155,6 +155,87 @@
         font-family: system-ui, sans-serif;
         font-size: 0.9em;
         padding: 2px 5px;
+      }
+
+      .tree-node .recipe-line {
+        display: block;
+        overflow: hidden;
+
+        padding: 5px 7px;
+        border: 1px solid rgb(255 255 255 / 22%);
+        border-radius: 5px;
+
+        background: rgb(0 0 0 / 16%);
+        color: rgb(255 255 255 / 92%);
+
+        font-size: 11px;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+
+      .tree-node .recipe-choice-line {
+        display: block;
+        width: 100%;
+      }
+
+      .tree-node .recipe-select {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+
+        appearance: none;
+        -webkit-appearance: none;
+
+        padding: 6px 30px 6px 8px;
+        border: 1px solid #aebed0;
+        border-radius: 6px;
+
+        background-color: #f8fafc;
+        background-image:
+          linear-gradient(45deg, transparent 50%, #315f92 50%),
+          linear-gradient(135deg, #315f92 50%, transparent 50%);
+        background-position:
+          calc(100% - 14px) 50%,
+          calc(100% - 9px) 50%;
+        background-size:
+          5px 5px,
+          5px 5px;
+        background-repeat: no-repeat;
+
+        color: #18212f;
+        font:
+          12px system-ui,
+          sans-serif;
+        line-height: 1.25;
+        cursor: pointer;
+      }
+
+      .tree-node .recipe-select:hover {
+        background-color: white;
+        border-color: #dce8f4;
+      }
+
+      .tree-node .recipe-select:focus {
+        outline: 2px solid #ffd54f;
+        outline-offset: 1px;
+      }
+
+      /* Search state */
+      .tree-node.search-dim {
+        opacity: 0.25;
+      }
+
+      .tree-node.search-match rect {
+        stroke: #ffd54f;
+        stroke-width: 4px;
+        filter: drop-shadow(0 0 7px rgb(255 213 79 / 75%));
+      }
+
+      /* The HTML content should not be accidentally dimmed independently */
+      .tree-node.search-match .node-content,
+      .tree-node.search-dim .node-content {
+        opacity: 1;
       }
 
       .summary {
@@ -381,6 +462,70 @@
 
       .tool-content[hidden] {
         display: none;
+      }
+
+      .tree-node rect {
+        stroke-width: 2px;
+        vector-effect: non-scaling-stroke;
+        transition:
+          filter 0.2s ease,
+          stroke-width 0.2s ease;
+      }
+
+      .recipe-node {
+        fill: #315f92;
+        stroke: #6fabe0;
+      }
+
+      .raw-material-node {
+        fill: #28643d;
+        stroke: #82ce91;
+      }
+
+      .tree-node:hover rect {
+        filter: drop-shadow(0 4px 8px rgb(0 0 0 / 25%));
+      }
+
+      .tree-node .node-content {
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+
+        color: white;
+        font-family: system-ui, sans-serif;
+        font-size: 12px;
+        line-height: 1.25;
+      }
+
+      .tree-node .node-line {
+        color: white;
+        font-family: system-ui, sans-serif;
+      }
+
+      .tree-node .material {
+        color: white;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
+      .tree-node .details {
+        color: rgb(255 255 255 / 78%);
+        font-size: 11px;
+      }
+
+      .tree-node select {
+        width: 220px;
+        box-sizing: border-box;
+        margin-top: 5px;
+        padding: 2px 4px;
+        font:
+          12px system-ui,
+          sans-serif;
       }
     </style>
   </head>
