@@ -186,6 +186,12 @@ function initialize() {
   let newState = { ...GLOBAL_STATE };
   newState = loadApiKey(newState);
   newState = loadCachedGameData(newState);
+  for (const material of newState.gameData.extractionData.data.map((e) => e.material)) {
+    newState = updateAvailability(newState, material, 5);
+  }
+  if (newState.craftingTree.targetMaterial === undefined) {
+    newState = updateSelectedTarget(newState, newState.gameData.materialData.data[0]?.id);
+  }
 
   initializeReloadDataButton();
   initializeSearchButton();
