@@ -16,7 +16,7 @@ describe('buildTree', () => {
       root: {
         targetAmount: 1,
         kind: 'rawMaterial',
-        material: targetMaterial,
+        targetMaterial: targetMaterial,
         path: [targetMaterial.id],
       },
     };

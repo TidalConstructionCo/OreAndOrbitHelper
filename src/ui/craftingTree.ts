@@ -138,7 +138,7 @@ function createRawMaterialNode(nodeGroup: NodeGroup, node: RawMaterialNode): voi
   content
     .append('div')
     .attr('class', 'node-line material')
-    .text(`${node.targetAmount}x ${node.material.name}`);
+    .text(`${node.targetAmount}x ${node.targetMaterial.name}`);
 
   content.append('div').attr('class', 'node-line details').text('Raw material');
 }
@@ -250,7 +250,7 @@ function nodeMatchesSearch(node: TreeNode, searchText: string): boolean {
 
   switch (node.kind) {
     case 'rawMaterial':
-      materialName = node.material.name;
+      materialName = node.targetMaterial.name;
       break;
 
     case 'recipe':

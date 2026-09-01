@@ -1,3 +1,6 @@
+import { Material } from '../api-access';
+import { CraftingTree } from '../domain/craftingTree/craftingTree';
+import { RecipeUtilization } from '../domain/craftingTree/treeAnalysis';
 import { CraftingTreeNew, TreeNodeNew } from '../domain/craftingTreeNew';
 import { formatAmount, formatAmountNew, formatPercentNew, formatRecipeNew } from './formatting';
 
@@ -56,7 +59,7 @@ export function renderSummaryNew(tree: CraftingTreeNew, summaryElement: HTMLElem
   extractorPanel.className = 'panel';
 
   const extractorTitle = document.createElement('h2');
-  extractorTitle.textContent = `Extractors needed to supply one ${tree.root.material} chain permanently`;
+  extractorTitle.textContent = `Extractors needed to supply one ${tree.root.material.name} chain permanently`;
   extractorPanel.appendChild(extractorTitle);
 
   const extractorList = document.createElement('ul');
@@ -65,6 +68,86 @@ export function renderSummaryNew(tree: CraftingTreeNew, summaryElement: HTMLElem
     const item = document.createElement('li');
     item.textContent =
       `${formatAmount(requirement.extractors)}x ` + `${requirement.material} extractor`;
+    extractorList.appendChild(item);
+  }
+
+  if (extractorList.children.length === 0) {
+    appendEmptyMessage(extractorList);
+  }
+
+  extractorPanel.appendChild(extractorList);
+  summaryElement.appendChild(extractorPanel);
+}
+
+export function renderSummary(
+  tree: CraftingTree,
+  rawItemAmounts: Map<Material, number>,
+  utilization: RecipeUtilization,
+  summaryElement: HTMLElement,
+  extractorRequirements: Map<Material, number>,
+) {
+  summaryElement.replaceChildren();
+
+  const rawPanel = document.createElement('div');
+  rawPanel.className = 'panel';
+
+  const rawTitle = document.createElement('h2');
+  rawTitle.textContent = 'Raw materials per crafting cycle';
+  rawPanel.appendChild(rawTitle);
+
+  const rawList = document.createElement('ul');
+
+  for (const [material, amount] of rawItemAmounts) {
+    const item = document.createElement('li');
+    item.textContent = `${formatAmountNew(amount)}x ${material.name}`;
+    rawList.appendChild(item);
+  }
+
+  if (rawList.children.length === 0) {
+    appendEmptyMessage(rawList);
+  }
+
+  rawPanel.appendChild(rawList);
+  summaryElement.appendChild(rawPanel);
+
+  // New recipe utilization panel
+  const utilizationPanel = document.createElement('div');
+  utilizationPanel.className = 'panel';
+
+  const utilizationTitle = document.createElement('h2');
+  utilizationTitle.textContent = 'Summed recipe utilization';
+  utilizationPanel.appendChild(utilizationTitle);
+
+  const utilizationList = document.createElement('ul');
+  const recipeTotals = utilization;
+
+  for (const [recipe, utilization] of recipeTotals) {
+    const item = document.createElement('li');
+
+    item.textContent = `${formatPercentNew(utilization)}: ${formatRecipeNew(recipe)}`;
+
+    utilizationList.appendChild(item);
+  }
+
+  if (utilizationList.children.length === 0) {
+    appendEmptyMessage(utilizationList);
+  }
+
+  utilizationPanel.appendChild(utilizationList);
+  summaryElement.appendChild(utilizationPanel);
+
+  const extractorPanel = document.createElement('div');
+  extractorPanel.className = 'panel';
+
+  const extractorTitle = document.createElement('h2');
+  extractorTitle.textContent = `Extractors needed to supply one ${tree.root.targetMaterial} chain permanently`;
+  extractorPanel.appendChild(extractorTitle);
+
+  const extractorList = document.createElement('ul');
+
+  for (const [material, extractorCount] of extractorRequirements) {
+    const item = document.createElement('li');
+    item.textContent = `${formatAmount(extractorCount)}x ` + `${material.name} extractor`;
     extractorList.appendChild(item);
   }
 

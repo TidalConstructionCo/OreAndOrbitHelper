@@ -10,7 +10,7 @@ export type CraftingTree = {
 };
 
 export type RawMaterialNode = TreeNodeBase & {
-  material: Material;
+  targetMaterial: Material;
   kind: 'rawMaterial';
 };
 
@@ -30,12 +30,9 @@ export type RecipeNode = TreeNodeBase & {
 
 export type TreeNode = RawMaterialNode | RecipeNode;
 
-// TODO: collect type helpers somewhere
-// type PropertyType<T, K extends keyof T> = T[K];
-
-// type MaterialId = PropertyType<Material, 'id'>;
-
-// export type TreePath = MaterialId[];
+/**
+ * Has the form Material1>Material2>...>MaterialN.
+ */
 export type TreePath = string;
 
 // TODO: possibly problematic due to array identity => options? Worst case, fall back to string via concatenation
@@ -107,7 +104,7 @@ function createRawMaterialNode(
   return {
     kind: 'rawMaterial',
     path: path,
-    material: material,
+    targetMaterial: material,
     targetAmount: amount,
   };
 }

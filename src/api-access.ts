@@ -46,7 +46,7 @@ export const ExtractionResponseSchema = z.object({
   data: z.array(ExtractionSchema),
 });
 
-// export type Extraction = z.infer<typeof ExtractionSchema>;
+export type Extraction = z.infer<typeof ExtractionSchema>;
 // export type ExtractionBooster = z.infer<typeof ExtractionBoosterSchema>;
 export type ExtractionResponse = z.infer<typeof ExtractionResponseSchema>;
 
