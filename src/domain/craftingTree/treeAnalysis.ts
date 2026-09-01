@@ -21,34 +21,6 @@ function getActiveTimeMinutes(node: RecipeNode): number {
 }
 
 // TODO: test?
-// TODO: this is incorrect, because the factors arent multiplied down the tree
-// This currently sums only the amounts needed for 1 cycle for each of the "root recipes".
-// export function getSummedRawItems2(tree: CraftingTree): Map<Material, number> {
-//   const result: Map<Material, number> = new Map();
-//   const remainingNodes = [tree.root];
-//   while (remainingNodes.length > 0) {
-//     const currentNode = remainingNodes.pop()!;
-//     const kind = currentNode.kind;
-//     switch (kind) {
-//       case 'rawMaterial': {
-//         result.set(
-//           currentNode.targetMaterial,
-//           (result.get(currentNode.targetMaterial) ?? 0) + currentNode.targetAmount,
-//         );
-//         break;
-//       }
-//       case 'recipe': {
-//         remainingNodes.push(...currentNode.children);
-//         break;
-//       }
-//       default: {
-//         const exhaustiveCheck: never = kind;
-//         throw new Error(`Unsupported kind ${exhaustiveCheck}`);
-//       }
-//     }
-//   }
-//   return result;
-// }
 
 export function getSummedRawItems(tree: CraftingTree): Map<Material, number> {
   const result: Map<Material, number> = new Map();
@@ -78,40 +50,14 @@ function getSummedRawItemsRecursive(
   for (const child of node.children) {
     getSummedRawItemsRecursive(child, result, currentMultiplier * multiplier);
   }
-  // const result: Map<Material, number> = new Map();
-  // const remainingNodes = [tree.root];
-  // while (remainingNodes.length > 0) {
-  //   const currentNode = remainingNodes.pop()!;
-  //   const kind = currentNode.kind;
-  //   switch (kind) {
-  //     case 'rawMaterial': {
-  //       result.set(
-  //         currentNode.targetMaterial,
-  //         (result.get(currentNode.targetMaterial) ?? 0) + currentNode.targetAmount,
-  //       );
-  //       break;
-  //     }
-  //     case 'recipe': {
-  //       remainingNodes.push(...currentNode.children);
-  //       break;
-  //     }
-  //     default: {
-  //       const exhaustiveCheck: never = kind;
-  //       throw new Error(`Unsupported kind ${exhaustiveCheck}`);
-  //     }
-  //   }
-  // }
-  // return result;
 }
 
 // TODO: move somewhere more fitting? Pass materials in instead of tree to reduce cost?
 export function getExtractorRequirements(
   tree: CraftingTree,
   extractionRecipes: Extraction[],
-  // rootDuration: number,
   // TODO: maybe use map instead? idk?
   extractionYields: Record<MaterialId, number>,
-  // TODO: add extraction sliders
 ): Map<Material, number> {
   const rawMaterials = getSummedRawItems(tree);
   const result: Map<Material, number> = new Map();
