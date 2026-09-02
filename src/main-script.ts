@@ -530,18 +530,19 @@ function renderSourcedMaterials(state: AppState, parent: HTMLDivElement) {
   }
   sourcedList.replaceChildren();
   for (const material of state.craftingTree.sourcedMaterials) {
+    const sourcedItem = document.createElement('li');
     const itemContainer = document.createElement('div');
     itemContainer.className = 'sourced-material-container';
-    const sourcedItem = document.createElement('li');
-    // TODO: add clickable remove button
-    sourcedItem.textContent = `${material.name}`;
-    itemContainer.append(sourcedItem);
     const removeSourcedItemButton = document.createElement('button');
     removeSourcedItemButton.type = 'button';
-    removeSourcedItemButton.textContent = 'Remove';
+    removeSourcedItemButton.textContent = 'X';
     removeSourcedItemButton.id = `remove-sourced-${material.id}`;
     itemContainer.append(removeSourcedItemButton);
-    sourcedList.append(itemContainer);
+    const text = document.createElement('div');
+    text.textContent = `${material.name}`;
+    itemContainer.append(text);
+    sourcedItem.append(itemContainer);
+    sourcedList.append(sourcedItem);
   }
 }
 
