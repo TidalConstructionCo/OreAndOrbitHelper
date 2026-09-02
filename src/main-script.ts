@@ -198,6 +198,7 @@ function initialize() {
   initializeExtractorSettings();
   initializeSourcedMaterialSelect();
   initializeAddSourcedMaterialButton();
+  initializeSourcedMaterialButtons();
   initializeToolTabsNew();
   initializeApiPageNew(
     (event: SubmitEvent): void => {
@@ -529,11 +530,53 @@ function renderSourcedMaterials(state: AppState, parent: HTMLDivElement) {
   }
   sourcedList.replaceChildren();
   for (const material of state.craftingTree.sourcedMaterials) {
+    const itemContainer = document.createElement('div');
+    itemContainer.className = 'sourced-material-container';
     const sourcedItem = document.createElement('li');
     // TODO: add clickable remove button
     sourcedItem.textContent = `${material.name}`;
-    sourcedList.append(sourcedItem);
+    itemContainer.append(sourcedItem);
+    const removeSourcedItemButton = document.createElement('button');
+    removeSourcedItemButton.type = 'button';
+    removeSourcedItemButton.textContent = 'Remove';
+    removeSourcedItemButton.id = `remove-sourced-${material.id}`;
+    itemContainer.append(removeSourcedItemButton);
+    sourcedList.append(itemContainer);
   }
+}
+
+function updateRemoveSourcedMaterial(state: AppState, id: string): AppState {
+  const originalItems = state.craftingTree.sourcedMaterials;
+  const index = originalItems.findIndex((material) => id === `remove-sourced-${material.id}`);
+  if (index === -1) {
+    return state;
+  }
+
+  return {
+    ...state,
+    craftingTree: {
+      ...state.craftingTree,
+      sourcedMaterials: [...originalItems.slice(0, index), ...originalItems.slice(index + 1)],
+    },
+  };
+}
+
+// TODO: combine the initialization for sourced stuff
+function initializeSourcedMaterialButtons(): void {
+  const sourcedMaterials = document.querySelector<HTMLDivElement>('.sourced-materials');
+  sourcedMaterials?.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLButtonElement)) {
+      return;
+    }
+    const parent = target.closest<HTMLElement>('.sourced-material-container');
+    if (!parent) {
+      return;
+    }
+
+    const newState = updateRemoveSourcedMaterial(GLOBAL_STATE, target.id);
+    update(newState);
+  });
 }
 
 function initializeSourcedMaterialSelect(): void {
@@ -587,3 +630,5 @@ function updateSourcedMaterialSelect(state: AppState, selectedTarget: string): A
     return state;
   }
 }
+
+// TODO: add removal of sourced items
