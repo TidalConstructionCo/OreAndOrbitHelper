@@ -33,7 +33,7 @@ export default tseslint.config(
         'error',
         {
           allowExpressions: false,
-          allowTypedFunctionExpressions: false,
+          allowTypedFunctionExpressions: true,
           allowHigherOrderFunctions: false,
           allowDirectConstAssertionInArrowFunctions: false,
           allowConciseArrowFunctionExpressionsStartingWithVoid: false,
@@ -117,7 +117,17 @@ export default tseslint.config(
       ],
     },
   },
-
+  {
+    files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
+    languageOptions: {
+      globals: {
+        ...globals.vitest,
+      },
+    },
+    rules: {
+      '@typescript-eslint/explicit-function-return-type': 'off',
+    },
+  },
   // Vite's config runs in Node, not the browser.
   {
     files: ['vite.config.ts'],

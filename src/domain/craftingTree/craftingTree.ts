@@ -1,4 +1,4 @@
-import { Material, Recipe } from '../../api-access';
+import type { Material, Recipe } from '../../api-access';
 
 type TreeNodeBase = {
   path: TreePath;
@@ -92,7 +92,7 @@ function createRootNode(
     recipeChoices,
     currentPath,
   );
-  if (!recipe) {
+  if (recipe === undefined) {
     return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
   }
 
@@ -129,7 +129,7 @@ function createTreeNodeRecursive(
     recipeChoices,
     currentPath,
   );
-  if (!recipe) {
+  if (recipe === undefined) {
     return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
   }
 
@@ -181,7 +181,7 @@ function createRecipeNode(
   sourcedMaterials: Material[],
 ): RecipeNode {
   const outputAmount =
-    recipe.byproduct && recipe.byproduct.material === targetMaterial.id
+    recipe.byproduct !== null && recipe.byproduct.material === targetMaterial.id
       ? recipe.byproduct.qty
       : recipe.output.qty;
   const totalCycles = targetAmount / outputAmount;
@@ -201,7 +201,7 @@ function createRecipeNode(
     totalDuration: recipeDurationMinutes,
     children: recipe.inputs.flatMap((input) => {
       const material = availableMaterials.find((material) => input.material === material.id);
-      if (!material) {
+      if (material === undefined) {
         return [];
       }
       return [
@@ -225,7 +225,7 @@ function getProducingRecipes(material: Material, recipes: Recipe[]): Recipe[] {
   return recipes.filter(
     (recipe) =>
       recipe.output.material === material.id ||
-      (recipe.byproduct && recipe.byproduct.material == material.id),
+      (recipe.byproduct !== null && recipe.byproduct.material == material.id),
   );
 }
 
@@ -235,7 +235,7 @@ function selectRecipe(
   choices: RecipeChoices,
 ): Recipe | undefined {
   const choice = choices.get(path);
-  if (choice && recipes.includes(choice)) {
+  if (choice !== undefined && recipes.includes(choice)) {
     return choice;
   }
   return recipes[0];
