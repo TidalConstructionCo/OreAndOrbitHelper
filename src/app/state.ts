@@ -14,6 +14,7 @@ type CraftingTreeState = {
   targetMaterial: Material | undefined;
   recipeChoices: RecipeChoices;
   sourcedMaterials: Material[];
+  selectedSourcedMaterial: Material | undefined;
 };
 
 export type GameData = {
@@ -40,6 +41,7 @@ export function createInitialState(): AppState {
       targetMaterial: undefined,
       recipeChoices: new Map(),
       sourcedMaterials: [],
+      selectedSourcedMaterial: undefined,
     },
     gameData: {
       // TODO: maybe omit the brackets

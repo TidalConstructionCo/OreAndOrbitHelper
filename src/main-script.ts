@@ -196,6 +196,8 @@ function initialize() {
   initializeSearchButton();
   initializeTargetSelect();
   initializeExtractorSettings();
+  initializeSourcedMaterialSelect();
+  initializeAddSourcedMaterialButton();
   initializeToolTabsNew();
   initializeApiPageNew(
     (event: SubmitEvent): void => {
@@ -499,7 +501,7 @@ function renderSourcedMaterials(state: AppState, parent: HTMLDivElement) {
   if (!select) {
     return;
   }
-  const targetMaterial = state.craftingTree.targetMaterial;
+  const targetMaterial = state.craftingTree.selectedSourcedMaterial;
   select.replaceChildren();
 
   const remainingMaterials = state.gameData.materialData.data.filter(
@@ -531,5 +533,57 @@ function renderSourcedMaterials(state: AppState, parent: HTMLDivElement) {
     // TODO: add clickable remove button
     sourcedItem.textContent = `${material.name}`;
     sourcedList.append(sourcedItem);
+  }
+}
+
+function initializeSourcedMaterialSelect(): void {
+  const sourcedMaterialSelect = document.querySelector<HTMLSelectElement>(
+    '#sourced-material-select',
+  );
+  sourcedMaterialSelect?.addEventListener('change', () => {
+    const newState = updateSourcedMaterialSelect(GLOBAL_STATE, sourcedMaterialSelect.value);
+    update(newState);
+  });
+}
+
+function initializeAddSourcedMaterialButton(): void {
+  const sourcedMaterialButton = document.querySelector<HTMLButtonElement>('#add-sourced-material');
+  const sourcedMaterialSelect = document.querySelector<HTMLSelectElement>(
+    '#sourced-material-select',
+  );
+  if (!sourcedMaterialSelect) {
+    return;
+  }
+  sourcedMaterialButton?.addEventListener('click', () => {
+    const newState = updateSourcedMaterialList(GLOBAL_STATE, sourcedMaterialSelect.value);
+    update(newState);
+  });
+}
+
+function updateSourcedMaterialList(state: AppState, selectedTarget: string): AppState {
+  const matchingMaterial = state.gameData.materialData.data.find((m) => m.id === selectedTarget);
+  if (matchingMaterial) {
+    return {
+      ...state,
+      craftingTree: {
+        ...state.craftingTree,
+        selectedSourcedMaterial: undefined,
+        sourcedMaterials: [...state.craftingTree.sourcedMaterials, matchingMaterial],
+      },
+    };
+  } else {
+    return state;
+  }
+}
+
+function updateSourcedMaterialSelect(state: AppState, selectedTarget: string): AppState {
+  const matchingMaterial = state.gameData.materialData.data.find((m) => m.id === selectedTarget);
+  if (matchingMaterial) {
+    return {
+      ...state,
+      craftingTree: { ...state.craftingTree, selectedSourcedMaterial: matchingMaterial },
+    };
+  } else {
+    return state;
   }
 }
