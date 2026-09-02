@@ -26,13 +26,14 @@ import {
   RecipesResponseSchema,
 } from './api-access';
 import { CACHE_KEYS, loadCache, saveToCache } from './cache';
-import { AppState, createInitialState, GameData, MaterialId, TabId } from './app/newState';
+import { AppState, createInitialState, GameData, MaterialId, TabId } from './app/state.js';
 import { renderExtractorSettingsNew } from './ui/extractorSettings.js';
 import { buildTree } from './domain/craftingTree/craftingTree.js';
 import { renderCraftingTree } from './ui/craftingTree.js';
 import {
   getExtractorRequirements,
   getSummedRawItems,
+  getSummedSourcedItems,
   getSummedUtilization,
 } from './domain/craftingTree/treeAnalysis.js';
 
@@ -40,7 +41,7 @@ let GLOBAL_STATE = createInitialState();
 const buttons = document.querySelectorAll<HTMLElement>('.tool-button');
 function update(newState: AppState) {
   GLOBAL_STATE = newState;
-  renderNew();
+  render();
 }
 
 // TODO: probably move somewhere else (domain)?
@@ -195,6 +196,9 @@ function initialize() {
   initializeSearchButton();
   initializeTargetSelect();
   initializeExtractorSettings();
+  initializeSourcedMaterialSelect();
+  initializeAddSourcedMaterialButton();
+  initializeSourcedMaterialButtons();
   initializeToolTabsNew();
   initializeApiPageNew(
     (event: SubmitEvent): void => {
@@ -393,6 +397,7 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
     state.gameData.materialData.data,
     state.gameData.recipeData.data,
     state.craftingTree.recipeChoices,
+    state.craftingTree.sourcedMaterials,
   );
   if (!tree) {
     return;
@@ -411,11 +416,16 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
   if (extractorSettingsContainer) {
     renderExtractorSettingsNew(state, extractorSettingsContainer);
   }
+  const sourcedMaterialsContainer = parent.querySelector<HTMLDivElement>('.sourced-materials');
+  if (sourcedMaterialsContainer) {
+    renderSourcedMaterials(state, sourcedMaterialsContainer);
+  }
   const summary = document.getElementById('summary');
   if (summary) {
     renderSummary(
       tree,
       getSummedRawItems(tree),
+      getSummedSourcedItems(tree),
       getSummedUtilization(tree),
       summary,
       getExtractorRequirements(
@@ -477,10 +487,149 @@ function renderSelectedTool(state: AppState) {
   }
 }
 
-function renderNew() {
+function render() {
   // TODO: pass more concrete stuff than the full object
   renderToolbar(GLOBAL_STATE.selectedTab);
   renderSelectedTool(GLOBAL_STATE);
 }
 
 initialize();
+
+// TODO: initialize with event handler
+// TODO: also implement "add"-button
+function renderSourcedMaterials(state: AppState, parent: HTMLDivElement) {
+  const select = parent.querySelector<HTMLSelectElement>('#sourced-material-select');
+  if (!select) {
+    return;
+  }
+  const targetMaterial = state.craftingTree.selectedSourcedMaterial;
+  select.replaceChildren();
+
+  const remainingMaterials = state.gameData.materialData.data.filter(
+    (material) =>
+      !state.craftingTree.sourcedMaterials.some((sourced) => sourced.id === material.id),
+  );
+  for (const material of remainingMaterials) {
+    const option = document.createElement('option');
+    // TODO: one of them should be the display name
+    option.value = material.id;
+    option.textContent = material.id;
+    select.appendChild(option);
+  }
+
+  // Preserve the selected target when it still exists.
+  if (targetMaterial && remainingMaterials.some((material) => material.id === targetMaterial.id)) {
+    select.value = targetMaterial.id;
+  } else {
+    select.selectedIndex = 0;
+  }
+
+  const sourcedList = parent.querySelector<HTMLUListElement>('#sourced-material-list');
+  if (!sourcedList) {
+    return;
+  }
+  sourcedList.replaceChildren();
+  for (const material of state.craftingTree.sourcedMaterials) {
+    const sourcedItem = document.createElement('li');
+    const itemContainer = document.createElement('div');
+    itemContainer.className = 'sourced-material-container';
+    const removeSourcedItemButton = document.createElement('button');
+    removeSourcedItemButton.type = 'button';
+    removeSourcedItemButton.textContent = 'X';
+    removeSourcedItemButton.id = `remove-sourced-${material.id}`;
+    itemContainer.append(removeSourcedItemButton);
+    const text = document.createElement('div');
+    text.textContent = `${material.name}`;
+    itemContainer.append(text);
+    sourcedItem.append(itemContainer);
+    sourcedList.append(sourcedItem);
+  }
+}
+
+function updateRemoveSourcedMaterial(state: AppState, id: string): AppState {
+  const originalItems = state.craftingTree.sourcedMaterials;
+  const index = originalItems.findIndex((material) => id === `remove-sourced-${material.id}`);
+  if (index === -1) {
+    return state;
+  }
+
+  return {
+    ...state,
+    craftingTree: {
+      ...state.craftingTree,
+      sourcedMaterials: [...originalItems.slice(0, index), ...originalItems.slice(index + 1)],
+    },
+  };
+}
+
+// TODO: combine the initialization for sourced stuff
+function initializeSourcedMaterialButtons(): void {
+  const sourcedMaterials = document.querySelector<HTMLDivElement>('.sourced-materials');
+  sourcedMaterials?.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLButtonElement)) {
+      return;
+    }
+    const parent = target.closest<HTMLElement>('.sourced-material-container');
+    if (!parent) {
+      return;
+    }
+
+    const newState = updateRemoveSourcedMaterial(GLOBAL_STATE, target.id);
+    update(newState);
+  });
+}
+
+function initializeSourcedMaterialSelect(): void {
+  const sourcedMaterialSelect = document.querySelector<HTMLSelectElement>(
+    '#sourced-material-select',
+  );
+  sourcedMaterialSelect?.addEventListener('change', () => {
+    const newState = updateSourcedMaterialSelect(GLOBAL_STATE, sourcedMaterialSelect.value);
+    update(newState);
+  });
+}
+
+function initializeAddSourcedMaterialButton(): void {
+  const sourcedMaterialButton = document.querySelector<HTMLButtonElement>('#add-sourced-material');
+  const sourcedMaterialSelect = document.querySelector<HTMLSelectElement>(
+    '#sourced-material-select',
+  );
+  if (!sourcedMaterialSelect) {
+    return;
+  }
+  sourcedMaterialButton?.addEventListener('click', () => {
+    const newState = updateSourcedMaterialList(GLOBAL_STATE, sourcedMaterialSelect.value);
+    update(newState);
+  });
+}
+
+function updateSourcedMaterialList(state: AppState, selectedTarget: string): AppState {
+  const matchingMaterial = state.gameData.materialData.data.find((m) => m.id === selectedTarget);
+  if (matchingMaterial) {
+    return {
+      ...state,
+      craftingTree: {
+        ...state.craftingTree,
+        selectedSourcedMaterial: undefined,
+        sourcedMaterials: [...state.craftingTree.sourcedMaterials, matchingMaterial],
+      },
+    };
+  } else {
+    return state;
+  }
+}
+
+function updateSourcedMaterialSelect(state: AppState, selectedTarget: string): AppState {
+  const matchingMaterial = state.gameData.materialData.data.find((m) => m.id === selectedTarget);
+  if (matchingMaterial) {
+    return {
+      ...state,
+      craftingTree: { ...state.craftingTree, selectedSourcedMaterial: matchingMaterial },
+    };
+  } else {
+    return state;
+  }
+}
+
+// TODO: add removal of sourced items

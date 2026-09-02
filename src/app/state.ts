@@ -13,6 +13,8 @@ type CraftingTreeState = {
   extractionYields: Record<MaterialId, number>;
   targetMaterial: Material | undefined;
   recipeChoices: RecipeChoices;
+  sourcedMaterials: Material[];
+  selectedSourcedMaterial: Material | undefined;
 };
 
 export type GameData = {
@@ -38,6 +40,8 @@ export function createInitialState(): AppState {
       extractionYields: {},
       targetMaterial: undefined,
       recipeChoices: new Map(),
+      sourcedMaterials: [],
+      selectedSourcedMaterial: undefined,
     },
     gameData: {
       // TODO: maybe omit the brackets

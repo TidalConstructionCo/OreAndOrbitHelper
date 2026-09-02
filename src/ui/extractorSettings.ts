@@ -1,4 +1,4 @@
-import { AppState } from '../app/newState';
+import { AppState } from '../app/state';
 import { getElementIdForMaterial } from './utils';
 
 const settingsCache: Map<string, HTMLDivElement> = new Map();

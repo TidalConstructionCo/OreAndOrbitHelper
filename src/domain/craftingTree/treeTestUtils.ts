@@ -17,7 +17,7 @@ export function createDummyMaterial(
 }
 
 export function createDummyRecipe(options: {
-  inputs?: [{ material: Material; qty: number }];
+  inputs?: { material: Material; qty: number }[];
   output: { material: Material; qty: number };
   duration?: number;
 }): Recipe {

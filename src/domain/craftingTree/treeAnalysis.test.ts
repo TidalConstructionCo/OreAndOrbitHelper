@@ -25,6 +25,7 @@ describe('getSummedUtilization', () => {
       [targetMaterial, inputMaterial, rawMaterial],
       [inputMaterialRecipe, mainRecipe],
       new Map(),
+      [],
     );
 
     // act
@@ -63,6 +64,7 @@ describe('getSummedUtilization', () => {
       [targetMaterial, inputMaterial, inputMaterial2, rawMaterial],
       [inputMaterialRecipe, inputMaterialRecipe2, mainRecipe],
       new Map(),
+      [],
     );
 
     // act

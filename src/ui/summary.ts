@@ -6,12 +6,15 @@ import { formatAmount, formatAmountNew, formatPercentNew, formatRecipeNew } from
 export function renderSummary(
   tree: CraftingTree,
   rawItemAmounts: Map<Material, number>,
+  sourcedItemAmounts: Map<Material, number>,
   utilization: RecipeUtilization,
   summaryElement: HTMLElement,
   extractorRequirements: Map<Material, number>,
 ) {
   summaryElement.replaceChildren();
 
+  // TODO: split up function
+  // create raw material sum element
   const rawPanel = document.createElement('div');
   rawPanel.className = 'panel';
 
@@ -33,6 +36,29 @@ export function renderSummary(
 
   rawPanel.appendChild(rawList);
   summaryElement.appendChild(rawPanel);
+
+  // create sourced material sum element
+  const sourcedPanel = document.createElement('div');
+  sourcedPanel.className = 'panel';
+
+  const sourcedTitle = document.createElement('h2');
+  sourcedTitle.textContent = 'Sourced materials per crafting cycle';
+  sourcedPanel.appendChild(sourcedTitle);
+
+  const sourcedList = document.createElement('ul');
+
+  for (const [material, amount] of sourcedItemAmounts) {
+    const item = document.createElement('li');
+    item.textContent = `${formatAmountNew(amount)}x ${material.name}`;
+    sourcedList.appendChild(item);
+  }
+
+  if (sourcedList.children.length === 0) {
+    appendEmptyMessage(sourcedList);
+  }
+
+  sourcedPanel.appendChild(sourcedList);
+  summaryElement.appendChild(sourcedPanel);
 
   // New recipe utilization panel
   const utilizationPanel = document.createElement('div');

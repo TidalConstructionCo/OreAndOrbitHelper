@@ -482,6 +482,11 @@
         stroke: #82ce91;
       }
 
+      .sourced-material-node {
+        fill: #532864;
+        stroke: #82ce91;
+      }
+
       .tree-node:hover rect {
         filter: drop-shadow(0 4px 8px rgb(0 0 0 / 25%));
       }
@@ -526,6 +531,11 @@
         font:
           12px system-ui,
           sans-serif;
+      }
+      .sourced-material-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
     </style>
   </head>
@@ -576,6 +586,13 @@
 
             <div class="extractor-settings">
               <h2>Material Abundance</h2>
+            </div>
+            <div class="sourced-materials">
+              <!-- TODO -->
+              <label for="sourced-material-select">Add sourced item:</label>
+              <select id="sourced-material-select"></select>
+              <button type="button" id="add-sourced-material">Add</button>
+              <ul id="sourced-material-list"></ul>
             </div>
             <div id="summary" class="summary"></div>
           </div>

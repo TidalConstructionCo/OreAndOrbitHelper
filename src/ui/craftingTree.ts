@@ -1,7 +1,12 @@
 import * as d3 from 'd3';
 import type { HierarchyPointLink, HierarchyPointNode, Selection } from 'd3';
 import type { Recipe } from '../api-access';
-import type { RawMaterialNode, RecipeNode, TreeNode } from '../domain/craftingTree/craftingTree';
+import type {
+  RawMaterialNode,
+  RecipeNode,
+  SourcedNode,
+  TreeNode,
+} from '../domain/craftingTree/craftingTree';
 import { formatAmountNew, formatPercentNew } from './formatting';
 
 type NodeGroup = Selection<SVGGElement, unknown, null, undefined>;
@@ -105,9 +110,12 @@ function createNode(
       createRecipeNode(nodeGroup, node.data, onRecipeChoiceChanged);
       break;
 
+    case 'sourced':
+      createSourcedMaterialNode(nodeGroup, node.data);
+      break;
+
     default: {
-      const exhaustiveCheck: never = node.data;
-      throw new Error(`Unsupported tree node: ${String(exhaustiveCheck)}`);
+      node.data satisfies never;
     }
   }
 }
@@ -141,6 +149,37 @@ function createRawMaterialNode(nodeGroup: NodeGroup, node: RawMaterialNode): voi
     .text(`${node.targetAmount}x ${node.targetMaterial.name}`);
 
   content.append('div').attr('class', 'node-line details').text('Raw material');
+}
+
+function createSourcedMaterialNode(nodeGroup: NodeGroup, node: SourcedNode): void {
+  const nodeWidth = 180;
+  const nodeHeight = 64;
+
+  nodeGroup
+    .append('rect')
+    .attr('x', -nodeWidth / 2)
+    .attr('y', -nodeHeight / 2)
+    .attr('width', nodeWidth)
+    .attr('height', nodeHeight)
+    .attr('rx', 10)
+    .attr('ry', 10)
+    .attr('class', 'sourced-material-node');
+
+  const content = nodeGroup
+    .append('foreignObject')
+    .attr('x', -nodeWidth / 2 + 8)
+    .attr('y', -nodeHeight / 2 + 8)
+    .attr('width', nodeWidth - 16)
+    .attr('height', nodeHeight - 16)
+    .append<HTMLDivElement>('xhtml:div')
+    .attr('class', 'node-content');
+
+  content
+    .append('div')
+    .attr('class', 'node-line material')
+    .text(`${node.targetAmount}x ${node.targetMaterial.name}`);
+
+  content.append('div').attr('class', 'node-line details').text('Sourced');
 }
 
 function createRecipeNode(
@@ -251,20 +290,17 @@ function nodeMatchesSearch(node: TreeNode, searchText: string): boolean {
     return true;
   }
 
-  let materialName: string;
+  let materialName = '';
 
-  switch (node.kind) {
+  const kind = node.kind;
+  switch (kind) {
     case 'rawMaterial':
-      materialName = node.targetMaterial.name;
-      break;
-
     case 'recipe':
+    case 'sourced':
       materialName = node.targetMaterial.name;
       break;
-
     default: {
-      const exhaustiveCheck: never = node;
-      throw new Error(`Unsupported tree node: ${String(exhaustiveCheck)}`);
+      kind satisfies never;
     }
   }
 
