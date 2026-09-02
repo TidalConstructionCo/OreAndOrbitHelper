@@ -33,6 +33,7 @@ import { renderCraftingTree } from './ui/craftingTree.js';
 import {
   getExtractorRequirements,
   getSummedRawItems,
+  getSummedSourcedItems,
   getSummedUtilization,
 } from './domain/craftingTree/treeAnalysis.js';
 
@@ -417,6 +418,7 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
     renderSummary(
       tree,
       getSummedRawItems(tree),
+      getSummedSourcedItems(tree),
       getSummedUtilization(tree),
       summary,
       getExtractorRequirements(

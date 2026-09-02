@@ -1,6 +1,6 @@
 import { Extraction, Material, Recipe } from '../../api-access';
 import { MaterialId } from '../../app/state';
-import { CraftingTree, RecipeNode, TreeNode } from './craftingTree';
+import { CraftingTree, RawMaterialNode, RecipeNode, SourcedNode, TreeNode } from './craftingTree';
 
 /**
  * Returns the amount of crafting cycles required to produce the target amount.
@@ -9,6 +9,38 @@ import { CraftingTree, RecipeNode, TreeNode } from './craftingTree';
  */
 function getRequiredCycles(node: RecipeNode): number {
   return node.targetAmount / node.outputAmount;
+}
+
+type TreeVisitor<TContext> = {
+  onRecipe: (node: RecipeNode, context: TContext) => void;
+  onRawNode: (node: RawMaterialNode, context: TContext) => void;
+  onSourcedNode: (node: SourcedNode, context: TContext) => void;
+  getChildContext: (node: RecipeNode, context: TContext) => TContext;
+};
+
+function traverseTree<TContext>(node: TreeNode, visitor: TreeVisitor<TContext>, context: TContext) {
+  const kind = node.kind;
+  switch (kind) {
+    case 'recipe': {
+      visitor.onRecipe(node, context);
+      const childContext = visitor.getChildContext(node, context);
+      for (const child of node.children) {
+        traverseTree(child, visitor, childContext);
+      }
+      return;
+    }
+    case 'rawMaterial': {
+      visitor.onRawNode(node, context);
+      return;
+    }
+    case 'sourced': {
+      visitor.onSourcedNode(node, context);
+      return;
+    }
+    default: {
+      kind satisfies never;
+    }
+  }
 }
 
 /**
@@ -24,35 +56,43 @@ function getActiveTimeMinutes(node: RecipeNode): number {
 
 export function getSummedRawItems(tree: CraftingTree): Map<Material, number> {
   const result: Map<Material, number> = new Map();
-  if (tree.root.kind === 'rawMaterial') {
-    result.set(tree.root.targetMaterial, tree.root.targetAmount);
-    return result;
-  }
-
-  getSummedRawItemsRecursive(tree.root, result, 1);
+  traverseTree(
+    tree.root,
+    {
+      onRawNode: (node, context) => {
+        result.set(
+          node.targetMaterial,
+          (result.get(node.targetMaterial) ?? 0) + node.targetAmount * context,
+        );
+      },
+      onSourcedNode: (_node, _context) => {},
+      onRecipe: (_node, _context) => {},
+      getChildContext: (node, context) => context * node.totalCycles,
+    },
+    1,
+  );
   return result;
 }
 
-function getSummedRawItemsRecursive(
-  node: TreeNode,
-  result: Map<Material, number>,
-  currentMultiplier: number,
-): void {
-  if (node.kind === 'rawMaterial') {
-    // TODO
-    result.set(
-      node.targetMaterial,
-      (result.get(node.targetMaterial) ?? 0) + node.targetAmount * currentMultiplier,
-    );
-    return;
-  }
-  if (node.kind === 'sourced') {
-    return;
-  }
-  const multiplier = node.totalCycles;
-  for (const child of node.children) {
-    getSummedRawItemsRecursive(child, result, currentMultiplier * multiplier);
-  }
+// TODO: combine the funcitons
+export function getSummedSourcedItems(tree: CraftingTree): Map<Material, number> {
+  const result: Map<Material, number> = new Map();
+  traverseTree(
+    tree.root,
+    {
+      onRawNode: (_node, _context) => {},
+      onSourcedNode: (node, context) => {
+        result.set(
+          node.targetMaterial,
+          (result.get(node.targetMaterial) ?? 0) + node.targetAmount * context,
+        );
+      },
+      onRecipe: (_node, _context) => {},
+      getChildContext: (node, context) => context * node.totalCycles,
+    },
+    1,
+  );
+  return result;
 }
 
 // TODO: move somewhere more fitting? Pass materials in instead of tree to reduce cost?
