@@ -39,6 +39,7 @@ export default tseslint.config(
           allowConciseArrowFunctionExpressionsStartingWithVoid: false,
         },
       ],
+      eqeqeq: ['error', 'always'],
 
       // Reject explicit `any`.
       '@typescript-eslint/no-explicit-any': 'error',

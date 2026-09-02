@@ -1,6 +1,12 @@
-import { Extraction, Material, Recipe } from '../../api-access';
-import { MaterialId } from '../../app/state';
-import { CraftingTree, RawMaterialNode, RecipeNode, SourcedNode, TreeNode } from './craftingTree';
+import type { Extraction, Material, Recipe } from '../../api-access';
+import type { MaterialId } from '../../app/state';
+import type {
+  CraftingTree,
+  RawMaterialNode,
+  RecipeNode,
+  SourcedNode,
+  TreeNode,
+} from './craftingTree';
 
 /**
  * Returns the amount of crafting cycles required to produce the target amount.
@@ -18,7 +24,11 @@ type TreeVisitor<TContext> = {
   getChildContext: (node: RecipeNode, context: TContext) => TContext;
 };
 
-function traverseTree<TContext>(node: TreeNode, visitor: TreeVisitor<TContext>, context: TContext) {
+function traverseTree<TContext>(
+  node: TreeNode,
+  visitor: TreeVisitor<TContext>,
+  context: TContext,
+): void {
   const kind = node.kind;
   switch (kind) {
     case 'recipe': {
@@ -108,7 +118,7 @@ export function getExtractorRequirements(
     const extractionRecipe = extractionRecipes.find(
       (r) => r.material === tree.root.targetMaterial.id,
     );
-    if (extractionRecipe) {
+    if (extractionRecipe !== undefined) {
       result.set(
         tree.root.targetMaterial,
         tree.root.targetAmount / extractionRecipe.units_per_batch,
@@ -118,8 +128,9 @@ export function getExtractorRequirements(
   }
   for (const [material, amount] of rawMaterials) {
     const extractionRecipe = extractionRecipes.find((r) => r.material === material.id);
-    if (extractionRecipe) {
-      const availability = extractionYields[material.id] || 5;
+    if (extractionRecipe !== undefined) {
+      const yld = extractionYields[material.id];
+      const availability = yld !== undefined ? yld : 5;
       const availabilityModifier = availability * 0.16 + 0.2;
 
       result.set(
@@ -162,7 +173,11 @@ export function getSummedUtilization(tree: CraftingTree): RecipeUtilization {
   return utilization;
 }
 
-function recurseUtilization(rootDuration: number, node: TreeNode, utilization: RecipeUtilization) {
+function recurseUtilization(
+  rootDuration: number,
+  node: TreeNode,
+  utilization: RecipeUtilization,
+): void {
   if (node.kind === 'rawMaterial' || node.kind === 'sourced') {
     return;
   }
@@ -171,7 +186,7 @@ function recurseUtilization(rootDuration: number, node: TreeNode, utilization: R
   const currentUtilization = utilization.get(node.recipe);
   utilization.set(
     node.recipe,
-    currentUtilization ? currentUtilization + nextUtilization : nextUtilization,
+    currentUtilization !== undefined ? currentUtilization + nextUtilization : nextUtilization,
   );
 
   for (const child of node.children) {

@@ -225,7 +225,7 @@ function getProducingRecipes(material: Material, recipes: Recipe[]): Recipe[] {
   return recipes.filter(
     (recipe) =>
       recipe.output.material === material.id ||
-      (recipe.byproduct !== null && recipe.byproduct.material == material.id),
+      (recipe.byproduct !== null && recipe.byproduct.material === material.id),
   );
 }
 

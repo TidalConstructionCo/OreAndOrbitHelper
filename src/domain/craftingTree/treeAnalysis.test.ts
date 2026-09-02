@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildTree } from './craftingTree';
-import { getSummedUtilization, RecipeUtilization } from './treeAnalysis';
+import type { RecipeUtilization } from './treeAnalysis';
+import { getSummedUtilization } from './treeAnalysis';
 import { createDummyMaterial, createDummyRecipe } from './treeTestUtils';
 
 // TODO: should be easier

@@ -1,8 +1,6 @@
-import { Material, Recipe } from '../../api-access';
+import type { Material, Recipe } from '../../api-access';
 
-export function createDummyMaterial(
-  options: { id: string | undefined } | undefined = undefined,
-): Material {
+export function createDummyMaterial(options?: { id: string | undefined }): Material {
   return {
     buy: null,
     category: '',
