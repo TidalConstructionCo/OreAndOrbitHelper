@@ -41,7 +41,7 @@ let GLOBAL_STATE = createInitialState();
 const buttons = document.querySelectorAll<HTMLElement>('.tool-button');
 function update(newState: AppState) {
   GLOBAL_STATE = newState;
-  renderNew();
+  render();
 }
 
 // TODO: probably move somewhere else (domain)?
@@ -413,6 +413,10 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement) {
   if (extractorSettingsContainer) {
     renderExtractorSettingsNew(state, extractorSettingsContainer);
   }
+  const sourcedMaterialsContainer = parent.querySelector<HTMLDivElement>('.sourced-materials');
+  if (sourcedMaterialsContainer) {
+    renderSourcedMaterials(state, sourcedMaterialsContainer);
+  }
   const summary = document.getElementById('summary');
   if (summary) {
     renderSummary(
@@ -480,10 +484,52 @@ function renderSelectedTool(state: AppState) {
   }
 }
 
-function renderNew() {
+function render() {
   // TODO: pass more concrete stuff than the full object
   renderToolbar(GLOBAL_STATE.selectedTab);
   renderSelectedTool(GLOBAL_STATE);
 }
 
 initialize();
+
+// TODO: initialize with event handler
+// TODO: also implement "add"-button
+function renderSourcedMaterials(state: AppState, parent: HTMLDivElement) {
+  const select = parent.querySelector<HTMLSelectElement>('#sourced-material-select');
+  if (!select) {
+    return;
+  }
+  const targetMaterial = state.craftingTree.targetMaterial;
+  select.replaceChildren();
+
+  const remainingMaterials = state.gameData.materialData.data.filter(
+    (material) =>
+      !state.craftingTree.sourcedMaterials.some((sourced) => sourced.id === material.id),
+  );
+  for (const material of remainingMaterials) {
+    const option = document.createElement('option');
+    // TODO: one of them should be the display name
+    option.value = material.id;
+    option.textContent = material.id;
+    select.appendChild(option);
+  }
+
+  // Preserve the selected target when it still exists.
+  if (targetMaterial && remainingMaterials.some((material) => material.id === targetMaterial.id)) {
+    select.value = targetMaterial.id;
+  } else {
+    select.selectedIndex = 0;
+  }
+
+  const sourcedList = parent.querySelector<HTMLUListElement>('#sourced-material-list');
+  if (!sourcedList) {
+    return;
+  }
+  sourcedList.replaceChildren();
+  for (const material of state.craftingTree.sourcedMaterials) {
+    const sourcedItem = document.createElement('li');
+    // TODO: add clickable remove button
+    sourcedItem.textContent = `${material.name}`;
+    sourcedList.append(sourcedItem);
+  }
+}
