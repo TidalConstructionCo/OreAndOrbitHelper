@@ -1,13 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import {
-  buildTree,
-  CraftingTree,
-  RecipeChoices,
-  RecipeNode,
-  selectProducingRecipe,
-  TreePath,
-} from './craftingTree';
-import { Material, Recipe } from '../../api-access';
+import type { CraftingTree, RecipeChoices, RecipeNode, TreePath } from './craftingTree';
+import { buildTree, selectProducingRecipe } from './craftingTree';
+import type { Material, Recipe } from '../../api-access';
 import { createDummyMaterial, createDummyRecipe } from './treeTestUtils';
 
 describe('buildTree', () => {
@@ -60,7 +54,7 @@ describe('buildTree', () => {
     const root = actual.root as RecipeNode;
     const intermediateMaterialNode = root.children[1];
     console.log(JSON.stringify(intermediateMaterialNode));
-    expect(intermediateMaterialNode.kind).toEqual('sourced');
+    expect(intermediateMaterialNode?.kind).toEqual('sourced');
   });
 });
 

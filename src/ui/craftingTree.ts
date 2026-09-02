@@ -47,7 +47,7 @@ export function renderCraftingTree(
     .append<SVGSVGElement>('svg')
     .attr('width', contentWidth)
     .attr('height', contentHeight)
-    .attr('viewBox', `0 0 ${contentWidth} ${contentHeight}`)
+    .attr('viewBox', `0 0 ${String(contentWidth)} ${String(contentHeight)}`)
     .style('max-width', '100%')
     .style('height', 'auto');
 
@@ -73,13 +73,13 @@ export function renderCraftingTree(
     .data(nodes)
     .join('g')
     .attr('class', (node) => {
-      if (!searchText.trim()) {
+      if (searchText.trim().length === 0) {
         return 'tree-node';
       }
       return `tree-node ${nodeMatchesSearch(node.data, searchText) ? 'search-match' : 'search-dim'}`;
     })
     // TODO: decide whether it should be left->right or top->down:
-    .attr('transform', (node) => `translate(${node.x}, ${node.y})`)
+    .attr('transform', (node) => `translate(${String(node.x)}, ${String(node.y)})`)
     .each(function (node) {
       createNode(d3.select<SVGGElement, unknown>(this), node, onRecipeChoiceChanged);
     });
@@ -89,11 +89,13 @@ export function renderCraftingTree(
   const zoom = d3
     .zoom<SVGSVGElement, unknown>()
     .scaleExtent([0.15, 8])
-    .on('zoom', (event) => {
-      zoomLayer.attr('transform', event.transform);
+    .on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
+      zoomLayer.attr('transform', event.transform.toString());
     });
 
-  svg.call(zoom).call(zoom.transform, initialTransform);
+  svg.call(zoom).call((selection): void => {
+    zoom.transform(selection, initialTransform);
+  });
 }
 
 function createNode(
@@ -146,7 +148,7 @@ function createRawMaterialNode(nodeGroup: NodeGroup, node: RawMaterialNode): voi
   content
     .append('div')
     .attr('class', 'node-line material')
-    .text(`${node.targetAmount}x ${node.targetMaterial.name}`);
+    .text(`${String(node.targetAmount)}x ${node.targetMaterial.name}`);
 
   content.append('div').attr('class', 'node-line details').text('Raw material');
 }
@@ -177,7 +179,7 @@ function createSourcedMaterialNode(nodeGroup: NodeGroup, node: SourcedNode): voi
   content
     .append('div')
     .attr('class', 'node-line material')
-    .text(`${node.targetAmount}x ${node.targetMaterial.name}`);
+    .text(`${String(node.targetAmount)}x ${node.targetMaterial.name}`);
 
   content.append('div').attr('class', 'node-line details').text('Sourced');
 }
@@ -212,7 +214,7 @@ function createRecipeNode(
   content
     .append('div')
     .attr('class', 'node-line material')
-    .text(`${node.targetAmount}x ${node.targetMaterial.name}`);
+    .text(`${String(node.targetAmount)}x ${node.targetMaterial.name}`);
 
   if (node.recipeChoices.length > 1) {
     appendRecipeSelection(content, node, onRecipeChoiceChanged);
@@ -234,6 +236,10 @@ function createRecipeNode(
     .text(`${formatPercentNew(node.utilization)} utilization`);
 }
 
+const stopEventPropagation = (event: Event): void => {
+  event.stopPropagation();
+};
+
 function appendRecipeSelection(
   content: ContentSelection,
   node: RecipeNode,
@@ -244,16 +250,16 @@ function appendRecipeSelection(
   choiceLine
     .append('select')
     .attr('class', 'recipe-select')
-    .on('mousedown', (event) => event.stopPropagation())
-    .on('pointerdown', (event) => event.stopPropagation())
-    .on('click', (event) => event.stopPropagation())
-    .on('change', function (event) {
+    .on('mousedown', stopEventPropagation)
+    .on('pointerdown', stopEventPropagation)
+    .on('click', stopEventPropagation)
+    .on('change', function (this: HTMLSelectElement, event: Event) {
       event.stopPropagation();
 
       const selectedIndex = Number(this.value);
       const selectedRecipe = node.recipeChoices[selectedIndex];
 
-      if (selectedRecipe) {
+      if (selectedRecipe !== undefined) {
         onRecipeChoiceChanged(node.path, selectedRecipe);
       }
     })
@@ -273,11 +279,15 @@ function appendRecipeDisplay(content: ContentSelection, node: RecipeNode): void 
 
 // TODO: use actual formatting with icons etc
 function formatRecipe(recipe: Recipe): string {
-  const inputs = recipe.inputs.map((input) => `${input.qty}x ${input.material}`).join(' + ');
+  const inputs = recipe.inputs
+    .map((input) => `${String(input.qty)}x ${input.material}`)
+    .join(' + ');
 
   const output =
-    `${recipe.output.qty}x ${recipe.output.material}` +
-    (recipe.byproduct ? ` ${recipe.byproduct.material}x ${recipe.byproduct.material}` : '');
+    `${String(recipe.output.qty)}x ${recipe.output.material}` +
+    (recipe.byproduct !== null
+      ? ` ${recipe.byproduct.material}x ${recipe.byproduct.material}`
+      : '');
 
   return `${inputs} → ${output}`;
 }
@@ -286,7 +296,7 @@ function nodeMatchesSearch(node: TreeNode, searchText: string): boolean {
   const normalizedSearchText = searchText.trim().toLowerCase();
 
   // An empty search should not dim any nodes.
-  if (!normalizedSearchText) {
+  if (normalizedSearchText.length === 0) {
     return true;
   }
 

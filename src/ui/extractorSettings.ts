@@ -1,4 +1,4 @@
-import { AppState } from '../app/state';
+import type { AppState } from '../app/state';
 import { getElementIdForMaterial } from './utils';
 
 const settingsCache: Map<string, HTMLDivElement> = new Map();
@@ -12,7 +12,7 @@ export function renderExtractorSettingsNew(state: AppState, parent: HTMLElement)
     visibleIds.add(id);
 
     let container = settingsCache.get(id);
-    if (!container) {
+    if (container === undefined) {
       container = createExtractorSettingsElement(id, material, value);
       settingsCache.set(id, container);
     }
@@ -31,17 +31,22 @@ export function renderExtractorSettingsNew(state: AppState, parent: HTMLElement)
   }
 }
 
-function updateContainer(container: HTMLDivElement, material: string, id: string, value: string) {
+function updateContainer(
+  container: HTMLDivElement,
+  material: string,
+  id: string,
+  value: string,
+): void {
   const label = container.querySelector<HTMLLabelElement>('label');
   const input = container.querySelector<HTMLInputElement>(`#${id}`);
   const output = container.querySelector<HTMLOutputElement>(`#${id}-value`);
-  if (label && label.textContent !== material) {
+  if (label !== null && label.textContent !== material) {
     label.textContent = material;
   }
-  if (input && document.activeElement !== input && input.value !== value) {
+  if (input !== null && document.activeElement !== input && input.value !== value) {
     input.value = value;
   }
-  if (output && output.textContent !== value) {
+  if (output !== null && output.textContent !== value) {
     output.textContent = value;
   }
 }

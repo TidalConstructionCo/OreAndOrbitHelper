@@ -1,6 +1,6 @@
-import { Material } from '../api-access';
-import { CraftingTree } from '../domain/craftingTree/craftingTree';
-import { RecipeUtilization } from '../domain/craftingTree/treeAnalysis';
+import type { Material } from '../api-access';
+import type { CraftingTree } from '../domain/craftingTree/craftingTree';
+import type { RecipeUtilization } from '../domain/craftingTree/treeAnalysis';
 import { formatAmount, formatAmountNew, formatPercentNew, formatRecipeNew } from './formatting';
 
 export function renderSummary(
@@ -10,7 +10,7 @@ export function renderSummary(
   utilization: RecipeUtilization,
   summaryElement: HTMLElement,
   extractorRequirements: Map<Material, number>,
-) {
+): void {
   summaryElement.replaceChildren();
 
   // TODO: split up function
@@ -90,7 +90,7 @@ export function renderSummary(
   extractorPanel.className = 'panel';
 
   const extractorTitle = document.createElement('h2');
-  extractorTitle.textContent = `Extractors needed to supply one ${tree.root.targetMaterial} chain permanently`;
+  extractorTitle.textContent = `Extractors needed to supply one ${tree.root.targetMaterial.name} chain permanently`;
   extractorPanel.appendChild(extractorTitle);
 
   const extractorList = document.createElement('ul');
@@ -109,7 +109,7 @@ export function renderSummary(
   summaryElement.appendChild(extractorPanel);
 }
 
-function appendEmptyMessage(list: HTMLUListElement) {
+function appendEmptyMessage(list: HTMLUListElement): void {
   const item = document.createElement('li');
   item.className = 'muted';
   item.textContent = 'None';

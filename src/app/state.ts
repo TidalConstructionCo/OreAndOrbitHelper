@@ -1,5 +1,10 @@
-import { ExtractionResponse, Material, MaterialsResponse, RecipesResponse } from '../api-access';
-import { RecipeChoices } from '../domain/craftingTree/craftingTree';
+import type {
+  ExtractionResponse,
+  Material,
+  MaterialsResponse,
+  RecipesResponse,
+} from '../api-access';
+import type { RecipeChoices } from '../domain/craftingTree/craftingTree';
 
 export type TabId = 'crafting-tree' | 'settings';
 // TODO: use apiKeyInput in event handler update function instead of dom element. Or is it useless?
