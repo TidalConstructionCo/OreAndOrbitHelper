@@ -75,7 +75,6 @@ function createSourcedNode(
 
 function createRootNode(
   targetMaterial: Material,
-  // targetAmount: number,
   availableMaterials: Material[],
   availableRecipes: Recipe[],
   recipeChoices: RecipeChoices,
