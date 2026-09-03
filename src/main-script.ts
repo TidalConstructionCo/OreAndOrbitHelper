@@ -363,7 +363,7 @@ function renderMaterialSelect(state: AppState, select: HTMLSelectElement): void 
     const option = document.createElement('option');
     // TODO: one of them should be the display name
     option.value = material.id;
-    option.textContent = material.id;
+    option.textContent = material.name;
     select.appendChild(option);
   }
 

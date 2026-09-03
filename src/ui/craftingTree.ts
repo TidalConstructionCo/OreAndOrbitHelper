@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import type { HierarchyPointLink, HierarchyPointNode, Selection } from 'd3';
-import type { Recipe } from '../api-access';
+import type { Material, Recipe } from '../api-access';
 import type {
   RawMaterialNode,
   RecipeNode,
@@ -145,11 +145,7 @@ function createRawMaterialNode(nodeGroup: NodeGroup, node: RawMaterialNode): voi
     .append<HTMLDivElement>('xhtml:div')
     .attr('class', 'node-content');
 
-  content
-    .append('div')
-    .attr('class', 'node-line material')
-    .text(`${String(node.targetAmount)}x ${node.targetMaterial.name}`);
-
+  addMaterialTitle(content, node.targetMaterial, node.targetAmount);
   content.append('div').attr('class', 'node-line details').text('Raw material');
 }
 
@@ -176,12 +172,27 @@ function createSourcedMaterialNode(nodeGroup: NodeGroup, node: SourcedNode): voi
     .append<HTMLDivElement>('xhtml:div')
     .attr('class', 'node-content');
 
-  content
-    .append('div')
-    .attr('class', 'node-line material')
-    .text(`${String(node.targetAmount)}x ${node.targetMaterial.name}`);
-
+  addMaterialTitle(content, node.targetMaterial, node.targetAmount);
   content.append('div').attr('class', 'node-line details').text('Sourced');
+}
+
+function addMaterialTitle(
+  container: d3.Selection<HTMLDivElement, unknown, null, undefined>,
+  material: Material,
+  targetAmound: number,
+): void {
+  const materialLine = container.append('div').attr('class', 'node-line material');
+  materialLine
+    .append('span')
+    .attr('class', 'material-amount')
+    .text(`${String(targetAmound)}x `);
+  materialLine
+    .append('img')
+    .attr('class', 'material-icon')
+    .attr('src', material.icon)
+    .attr('width', 16)
+    .attr('height', 16);
+  materialLine.append('span').text(material.name);
 }
 
 function createRecipeNode(
@@ -211,10 +222,7 @@ function createRecipeNode(
     .append<HTMLDivElement>('xhtml:div')
     .attr('class', 'node-content');
 
-  content
-    .append('div')
-    .attr('class', 'node-line material')
-    .text(`${String(node.targetAmount)}x ${node.targetMaterial.name}`);
+  addMaterialTitle(content, node.targetMaterial, node.targetAmount);
 
   if (node.recipeChoices.length > 1) {
     appendRecipeSelection(content, node, onRecipeChoiceChanged);
