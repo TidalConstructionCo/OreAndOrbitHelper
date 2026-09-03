@@ -36,6 +36,7 @@ export function renderExtractorSettingsNew(state: AppState, parent: HTMLElement)
   }
 }
 
+// TODO: update and create duplicate a lot of logic, can we simplify this (e.g. by reusing update)?
 function updateContainer(
   container: HTMLDivElement,
   material: Material,
@@ -43,10 +44,14 @@ function updateContainer(
   value: string,
 ): void {
   const label = container.querySelector<HTMLLabelElement>('label');
+  const icon = container.querySelector<HTMLImageElement>('img');
   const input = container.querySelector<HTMLInputElement>(`#${id}`);
   const output = container.querySelector<HTMLOutputElement>(`#${id}-value`);
   if (label !== null && label.textContent !== material.name) {
     label.textContent = material.name;
+  }
+  if (icon !== null && icon.src !== material.icon) {
+    icon.src = material.icon;
   }
   if (input !== null && document.activeElement !== input && input.value !== value) {
     input.value = value;
@@ -64,9 +69,18 @@ function createExtractorSettingsElement(
   const wrapper = document.createElement('div');
   wrapper.className = 'extractor-setting';
 
+  const labelContainer = document.createElement('div');
+
+  const icon = document.createElement('img');
+  icon.src = material.icon;
+  icon.width = 16;
+  icon.height = 16;
+  labelContainer.appendChild(icon);
+
   const label = document.createElement('label');
   label.htmlFor = id;
   label.textContent = material.name;
+  labelContainer.appendChild(label);
 
   const input = document.createElement('input');
   input.type = 'range';
@@ -80,6 +94,6 @@ function createExtractorSettingsElement(
   output.id = `${id}-value`;
   output.textContent = value;
 
-  wrapper.append(label, input, output);
+  wrapper.append(labelContainer, input, output);
   return wrapper;
 }
