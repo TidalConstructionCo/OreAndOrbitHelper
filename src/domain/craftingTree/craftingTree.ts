@@ -50,7 +50,6 @@ export function buildTree(
   const path: TreePath = targetMaterial.id;
   const root = createRootNode(
     targetMaterial,
-    1,
     availableMaterials,
     availableRecipes,
     recipeChoices,
@@ -76,7 +75,7 @@ function createSourcedNode(
 
 function createRootNode(
   targetMaterial: Material,
-  targetAmount: number,
+  // targetAmount: number,
   availableMaterials: Material[],
   availableRecipes: Recipe[],
   recipeChoices: RecipeChoices,
@@ -84,7 +83,7 @@ function createRootNode(
   sourcedMaterials: Material[],
 ): TreeNode {
   if (sourcedMaterials.some((m) => m.id === targetMaterial.id)) {
-    return createSourcedNode(currentPath, targetAmount, targetMaterial);
+    return createSourcedNode(currentPath, 1, targetMaterial);
   }
   const recipe = selectProducingRecipe(
     targetMaterial,
@@ -93,9 +92,11 @@ function createRootNode(
     currentPath,
   );
   if (recipe === undefined) {
-    return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
+    return createRawMaterialNode(currentPath, targetMaterial, 1);
   }
 
+  const outputQuantity =
+    recipe.byproduct?.material === targetMaterial.id ? recipe.byproduct.qty : recipe.output.qty;
   const rootDuration = recipe.batch_minutes;
   return createRecipeNode(
     currentPath,
@@ -103,7 +104,7 @@ function createRootNode(
     availableMaterials,
     availableRecipes,
     recipeChoices,
-    targetAmount,
+    outputQuantity,
     targetMaterial,
     rootDuration,
     sourcedMaterials,
