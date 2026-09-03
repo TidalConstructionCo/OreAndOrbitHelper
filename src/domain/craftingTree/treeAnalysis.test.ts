@@ -19,7 +19,7 @@ describe('getSummedUtilization', () => {
     const mainRecipe = createDummyRecipe({
       duration: 100,
       inputs: [{ material: inputMaterial, qty: 1 }],
-      output: { material: targetMaterial, qty: 1 },
+      output: { material: targetMaterial, qty: 2 },
     });
     const tree = buildTree(
       targetMaterial,
