@@ -23,7 +23,7 @@ export function renderCraftingTree(
 ): void {
   const existingSvg = treeElement.querySelector<SVGSVGElement>(':scope > svg');
 
-  const previousTransform = existingSvg ? d3.zoomTransform(existingSvg) : undefined;
+  const previousTransform = existingSvg !== null ? d3.zoomTransform(existingSvg) : undefined;
   treeElement.replaceChildren();
 
   const treeWidth = Math.max(treeElement.clientWidth, 320);
@@ -31,7 +31,7 @@ export function renderCraftingTree(
 
   const treeLayout = d3
     .tree<TreeNode>()
-    .nodeSize([300, 175])
+    .nodeSize([220, 175])
     .separation((a, b) => (a.parent === b.parent ? 1.4 : 2));
 
   const root = treeLayout(d3.hierarchy<TreeNode>(rootNode));
