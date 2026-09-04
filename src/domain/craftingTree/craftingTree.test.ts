@@ -13,9 +13,12 @@ describe('buildTree', () => {
         kind: 'rawMaterial',
         targetMaterial: targetMaterial,
         path: targetMaterial.id,
+        hasCraftingRecipe: false,
       },
     };
-    expect(buildTree(targetMaterial, [], [], new Map<TreePath, Recipe>(), [])).toEqual(expected);
+    expect(buildTree(targetMaterial, [], [], [], new Map<TreePath, Recipe>(), [], [])).toEqual(
+      expected,
+    );
   });
   it('turns sourced input into sourced node', () => {
     // arrange
@@ -45,8 +48,10 @@ describe('buildTree', () => {
       targetMaterial,
       [targetMaterial, rawMaterial1, rawMaterial2, intermediateMaterial],
       [recipe1, recipe2],
+      [],
       new Map<TreePath, Recipe>(),
       [intermediateMaterial],
+      [],
     );
 
     // assert
@@ -55,6 +60,45 @@ describe('buildTree', () => {
     const intermediateMaterialNode = root.children[1];
     console.log(JSON.stringify(intermediateMaterialNode));
     expect(intermediateMaterialNode?.kind).toEqual('sourced');
+  });
+  it('overrides extraction with recipe when forced', () => {
+    // arrange
+    const targetMaterial: Material = createDummyMaterial({ id: 'targetMaterial' });
+    const intermediateMaterial: Material = createDummyMaterial({ id: 'intermediateMaterial' });
+    const rawMaterial1: Material = createDummyMaterial({ id: 'rawMaterial1' });
+    const rawMaterial2: Material = createDummyMaterial({ id: 'rawMaterial2' });
+    const recipe1 = createDummyRecipe({
+      output: { material: targetMaterial, qty: 1 },
+      duration: 30,
+      inputs: [
+        { material: rawMaterial1, qty: 1 },
+        { material: intermediateMaterial, qty: 5 },
+      ],
+    });
+    const recipe2 = createDummyRecipe({
+      output: { material: intermediateMaterial, qty: 10 },
+      duration: 30,
+      inputs: [
+        { material: rawMaterial1, qty: 2 },
+        { material: rawMaterial2, qty: 3 },
+      ],
+    });
+
+    // act
+    const actual = buildTree(
+      targetMaterial,
+      [targetMaterial, rawMaterial1, rawMaterial2, intermediateMaterial],
+      [recipe1, recipe2],
+      [intermediateMaterial.id],
+      new Map<TreePath, Recipe>(),
+      [],
+      [`${targetMaterial.id}>${intermediateMaterial.id}`],
+    );
+
+    // assert
+    const root = actual.root as RecipeNode;
+    const intermediateMaterialNode = root.children[1];
+    expect(intermediateMaterialNode?.kind).toEqual('recipe');
   });
 });
 

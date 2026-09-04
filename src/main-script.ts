@@ -409,8 +409,10 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
     state.craftingTree.targetMaterial,
     state.gameData.materialData.data,
     state.gameData.recipeData.data,
+    state.gameData.extractionData.data.map((e) => e.material),
     state.craftingTree.recipeChoices,
     state.craftingTree.sourcedMaterials,
+    state.craftingTree.recipeOverrides,
   );
 
   renderCraftingTree(
@@ -419,6 +421,10 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
     state.craftingTree.searchText ?? '',
     (path: string, recipe: Recipe) => {
       const newState = updateRecipeSelection(state, path, recipe);
+      update(newState);
+    },
+    (path: string, isRaw: boolean) => {
+      const newState = updateRecipeOverrides(state, path, isRaw);
       update(newState);
     },
   );
@@ -645,4 +651,31 @@ function updateSourcedMaterialSelect(state: AppState, selectedTarget: string): A
   }
 }
 
-// TODO: add removal of sourced items
+function updateRecipeOverrides(state: AppState, path: string, isRaw: boolean): AppState {
+  if (!isRaw) {
+    // Current node is recipe => try to remove existing override
+    const currentChoices = state.craftingTree.recipeOverrides;
+    if (!currentChoices.includes(path)) {
+      return state;
+    }
+    return {
+      ...state,
+      craftingTree: {
+        ...state.craftingTree,
+        recipeOverrides: state.craftingTree.recipeOverrides.filter((r) => r !== path),
+      },
+    };
+  }
+
+  if (state.craftingTree.recipeOverrides.includes(path)) {
+    return state;
+  }
+
+  return {
+    ...state,
+    craftingTree: {
+      ...state.craftingTree,
+      recipeOverrides: [...state.craftingTree.recipeOverrides, path],
+    },
+  };
+}
