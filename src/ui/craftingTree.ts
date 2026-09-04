@@ -137,7 +137,6 @@ function createRawMaterialNode(
 ): void {
   const nodeWidth = 180;
   const nodeHeight = 96;
-  // const nodeHeight = 64;
 
   nodeGroup
     .append('rect')
@@ -230,7 +229,6 @@ function createRecipeNode(
 ): void {
   const nodeWidth = 270;
   const nodeHeight = 154;
-  // const nodeHeight = 186;
 
   nodeGroup
     .append('rect')

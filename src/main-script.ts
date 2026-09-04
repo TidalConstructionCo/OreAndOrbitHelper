@@ -652,7 +652,6 @@ function updateSourcedMaterialSelect(state: AppState, selectedTarget: string): A
 }
 
 function updateRecipeOverrides(state: AppState, path: string, isRaw: boolean): AppState {
-  // const newChoices = new Map(state.craftingTree.recipeChoices);
   if (!isRaw) {
     // Current node is recipe => try to remove existing override
     const currentChoices = state.craftingTree.recipeOverrides;

@@ -43,7 +43,6 @@ type NodeKind = TreeNode['kind'];
 export type TreePath = string;
 
 export type RecipeChoices = Map<TreePath, Recipe>;
-// TODO: this should technically also check if there even exists an extraction recipe
 export type ForcedRecipe = TreePath[];
 
 // TODO: many parameters, wrap into some type
@@ -51,8 +50,6 @@ export function buildTree(
   targetMaterial: Material,
   availableMaterials: Material[],
   availableRecipes: Recipe[],
-  // TODO: a) add test b) store "hasExtractionRecipe/hasCraftingRecipe" on node c) render extraction toggle
-  // TODO 2: if there'S an extraction recipe, that should be the default (not recipe)
   extractableMaterials: MaterialId[],
   recipeChoices: RecipeChoices,
   sourcedMaterials: Material[],
