@@ -6,6 +6,7 @@ import type {
   RecipeNode,
   SourcedNode,
   TreeNode,
+  TreePath,
 } from '../domain/craftingTree/craftingTree';
 import { formatAmountNew, formatPercentNew } from './formatting';
 
@@ -18,6 +19,7 @@ export function renderCraftingTree(
   rootNode: TreeNode,
   searchText: string,
   onRecipeChoiceChanged: (path: string, recipe: Recipe) => void,
+  onForceRecipeOverrideChanged: (path: TreePath, isRaw: boolean) => void,
 ): void {
   treeElement.replaceChildren();
 
@@ -81,7 +83,12 @@ export function renderCraftingTree(
     // TODO: decide whether it should be left->right or top->down:
     .attr('transform', (node) => `translate(${String(node.x)}, ${String(node.y)})`)
     .each(function (node) {
-      createNode(d3.select<SVGGElement, unknown>(this), node, onRecipeChoiceChanged);
+      createNode(
+        d3.select<SVGGElement, unknown>(this),
+        node,
+        onRecipeChoiceChanged,
+        onForceRecipeOverrideChanged,
+      );
     });
 
   const initialTransform = d3.zoomIdentity.translate(170 - (minX ?? 0), 80);
@@ -102,14 +109,15 @@ function createNode(
   nodeGroup: NodeGroup,
   node: HierarchyPointNode<TreeNode>,
   onRecipeChoiceChanged: (path: string, recipe: Recipe) => void,
+  onForceRecipeOverrideChanged: (path: TreePath, isRaw: boolean) => void,
 ): void {
   switch (node.data.kind) {
     case 'rawMaterial':
-      createRawMaterialNode(nodeGroup, node.data);
+      createRawMaterialNode(nodeGroup, node.data, onForceRecipeOverrideChanged);
       break;
 
     case 'recipe':
-      createRecipeNode(nodeGroup, node.data, onRecipeChoiceChanged);
+      createRecipeNode(nodeGroup, node.data, onRecipeChoiceChanged, onForceRecipeOverrideChanged);
       break;
 
     case 'sourced':
@@ -122,9 +130,14 @@ function createNode(
   }
 }
 
-function createRawMaterialNode(nodeGroup: NodeGroup, node: RawMaterialNode): void {
+function createRawMaterialNode(
+  nodeGroup: NodeGroup,
+  node: RawMaterialNode,
+  onForceRecipeOverrideChanged: (path: TreePath, isRaw: boolean) => void,
+): void {
   const nodeWidth = 180;
-  const nodeHeight = 64;
+  const nodeHeight = 96;
+  // const nodeHeight = 64;
 
   nodeGroup
     .append('rect')
@@ -147,6 +160,20 @@ function createRawMaterialNode(nodeGroup: NodeGroup, node: RawMaterialNode): voi
 
   addMaterialTitle(content, node.targetMaterial, node.targetAmount);
   content.append('div').attr('class', 'node-line details').text('Raw material');
+
+  if (!node.hasCraftingRecipe) {
+    return;
+  }
+  const actionRow = content.append('div').attr('class', 'node-actions');
+  actionRow
+    .append('button')
+    .attr('type', 'button')
+    .attr('class', 'force-recipe-button')
+    .text('Craft')
+    .on('click', (event: MouseEvent) => {
+      event.stopPropagation();
+      onForceRecipeOverrideChanged(node.path, true);
+    });
 }
 
 function createSourcedMaterialNode(nodeGroup: NodeGroup, node: SourcedNode): void {
@@ -199,9 +226,11 @@ function createRecipeNode(
   nodeGroup: NodeGroup,
   node: RecipeNode,
   onRecipeChoiceChanged: (path: string, recipe: Recipe) => void,
+  onForceRecipeOverrideChanged: (path: TreePath, isRaw: boolean) => void,
 ): void {
   const nodeWidth = 270;
   const nodeHeight = 154;
+  // const nodeHeight = 186;
 
   nodeGroup
     .append('rect')
@@ -242,6 +271,20 @@ function createRecipeNode(
     .append('div')
     .attr('class', 'node-line details')
     .text(`${formatPercentNew(node.utilization)} utilization`);
+
+  if (!node.hasExtractionRecipe) {
+    return;
+  }
+  const actionRow = content.append('div').attr('class', 'node-actions');
+  actionRow
+    .append('button')
+    .attr('type', 'button')
+    .attr('class', 'force-recipe-button')
+    .text('Extract')
+    .on('click', (event: MouseEvent) => {
+      event.stopPropagation();
+      onForceRecipeOverrideChanged(node.path, false);
+    });
 }
 
 const stopEventPropagation = (event: Event): void => {

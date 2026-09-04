@@ -14,6 +14,7 @@ export type CraftingTree = {
 
 export type RawMaterialNode = TreeNodeBase & {
   kind: 'rawMaterial';
+  hasCraftingRecipe: boolean;
 };
 
 // TODO: maybe directly save the derived info instead of output amount etc?
@@ -27,6 +28,7 @@ export type RecipeNode = TreeNodeBase & {
   totalCycles: number;
   totalDuration: number;
   utilization: number;
+  hasExtractionRecipe: boolean;
 };
 
 export type SourcedNode = TreeNodeBase & {
@@ -112,7 +114,7 @@ function createRootNode(
     return createSourcedNode(currentPath, 1, targetMaterial);
   }
   if (targetKind === 'rawMaterial') {
-    return createRawMaterialNode(currentPath, targetMaterial, 1);
+    return createRawMaterialNode(currentPath, targetMaterial, 1, recipe !== undefined);
   }
 
   if (recipe === undefined) {
@@ -204,7 +206,7 @@ function createTreeNodeRecursive(
   );
   switch (targetKind) {
     case 'rawMaterial': {
-      return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
+      return createRawMaterialNode(currentPath, targetMaterial, targetAmount, recipe !== undefined);
     }
     case 'recipe': {
       return createRecipeNode(
@@ -227,7 +229,7 @@ function createTreeNodeRecursive(
     }
     default: {
       targetKind satisfies never;
-      return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
+      return createRawMaterialNode(currentPath, targetMaterial, targetAmount, recipe !== undefined);
     }
   }
 }
@@ -246,12 +248,14 @@ function createRawMaterialNode(
   path: TreePath,
   material: Material,
   amount: number,
+  hasCraftingRecipe: boolean,
 ): RawMaterialNode {
   return {
     kind: 'rawMaterial',
     path: path,
     targetMaterial: material,
     targetAmount: amount,
+    hasCraftingRecipe: hasCraftingRecipe,
   };
 }
 
@@ -275,6 +279,7 @@ function createRecipeNode(
   const totalCycles = targetAmount / outputAmount;
   const recipeDurationMinutes = totalCycles * recipe.batch_minutes;
   const utilization = recipeDurationMinutes / rootDurationMinutes;
+  const hasExtractionRecipe = extractableMaterials.some((m) => m === targetMaterial.id);
   const node: RecipeNode = {
     kind: 'recipe',
     recipe: recipe,
@@ -287,6 +292,7 @@ function createRecipeNode(
     targetMaterial,
     totalCycles: totalCycles,
     totalDuration: recipeDurationMinutes,
+    hasExtractionRecipe: hasExtractionRecipe,
     children: recipe.inputs.flatMap((input) => {
       const material = availableMaterials.find((material) => input.material === material.id);
       if (material === undefined) {

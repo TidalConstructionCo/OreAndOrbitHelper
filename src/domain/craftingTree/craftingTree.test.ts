@@ -13,6 +13,7 @@ describe('buildTree', () => {
         kind: 'rawMaterial',
         targetMaterial: targetMaterial,
         path: targetMaterial.id,
+        hasCraftingRecipe: false,
       },
     };
     expect(buildTree(targetMaterial, [], [], [], new Map<TreePath, Recipe>(), [], [])).toEqual(
@@ -60,7 +61,7 @@ describe('buildTree', () => {
     console.log(JSON.stringify(intermediateMaterialNode));
     expect(intermediateMaterialNode?.kind).toEqual('sourced');
   });
-  it('overrides recipe with raw when forced', () => {
+  it('overrides extraction with recipe when forced', () => {
     // arrange
     const targetMaterial: Material = createDummyMaterial({ id: 'targetMaterial' });
     const intermediateMaterial: Material = createDummyMaterial({ id: 'intermediateMaterial' });
@@ -88,7 +89,7 @@ describe('buildTree', () => {
       targetMaterial,
       [targetMaterial, rawMaterial1, rawMaterial2, intermediateMaterial],
       [recipe1, recipe2],
-      [],
+      [intermediateMaterial.id],
       new Map<TreePath, Recipe>(),
       [],
       [`${targetMaterial.id}>${intermediateMaterial.id}`],
@@ -97,7 +98,7 @@ describe('buildTree', () => {
     // assert
     const root = actual.root as RecipeNode;
     const intermediateMaterialNode = root.children[1];
-    expect(intermediateMaterialNode?.kind).toEqual('rawMaterial');
+    expect(intermediateMaterialNode?.kind).toEqual('recipe');
   });
 });
 
