@@ -1,4 +1,5 @@
-import type { Material, Recipe } from '../../api-access';
+// import type { Force } from 'd3';
+import type { Extraction, Material, Recipe } from '../../api-access';
 
 type TreeNodeBase = {
   path: TreePath;
@@ -39,13 +40,18 @@ export type TreeNode = RawMaterialNode | RecipeNode | SourcedNode;
 export type TreePath = string;
 
 export type RecipeChoices = Map<TreePath, Recipe>;
+// TODO: this should technically also check if there even exists an extraction recipe
+export type ForcedExtraction = TreePath[];
 
 export function buildTree(
   targetMaterial: Material,
   availableMaterials: Material[],
   availableRecipes: Recipe[],
+  // TODO: a) add test b) store "hasExtractionRecipe" on node c) render extraction toggle
+  availableExtractionRecipes: Extraction[],
   recipeChoices: RecipeChoices,
   sourcedMaterials: Material[],
+  extractionOverrides: ForcedExtraction,
 ): CraftingTree {
   const path: TreePath = targetMaterial.id;
   const root = createRootNode(
@@ -55,6 +61,7 @@ export function buildTree(
     recipeChoices,
     path,
     sourcedMaterials,
+    extractionOverrides,
   );
 
   return { root };
@@ -80,6 +87,7 @@ function createRootNode(
   recipeChoices: RecipeChoices,
   currentPath: TreePath,
   sourcedMaterials: Material[],
+  extractionOverrides: ForcedExtraction,
 ): TreeNode {
   if (sourcedMaterials.some((m) => m.id === targetMaterial.id)) {
     return createSourcedNode(currentPath, 1, targetMaterial);
@@ -90,7 +98,7 @@ function createRootNode(
     recipeChoices,
     currentPath,
   );
-  if (recipe === undefined) {
+  if (extractionOverrides.includes(currentPath) || recipe === undefined) {
     return createRawMaterialNode(currentPath, targetMaterial, 1);
   }
 
@@ -107,6 +115,7 @@ function createRootNode(
     targetMaterial,
     rootDuration,
     sourcedMaterials,
+    extractionOverrides,
   );
 }
 
@@ -119,6 +128,7 @@ function createTreeNodeRecursive(
   currentPath: TreePath,
   rootDurationMinutes: number,
   sourcedMaterials: Material[],
+  extractionOverrides: ForcedExtraction,
 ): TreeNode {
   if (sourcedMaterials.some((m) => m.id === targetMaterial.id)) {
     return createSourcedNode(currentPath, targetAmount, targetMaterial);
@@ -129,7 +139,7 @@ function createTreeNodeRecursive(
     recipeChoices,
     currentPath,
   );
-  if (recipe === undefined) {
+  if (extractionOverrides.includes(currentPath) || recipe === undefined) {
     return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
   }
 
@@ -143,6 +153,7 @@ function createTreeNodeRecursive(
     targetMaterial,
     rootDurationMinutes,
     sourcedMaterials,
+    extractionOverrides,
   );
 }
 
@@ -179,6 +190,7 @@ function createRecipeNode(
   targetMaterial: Material,
   rootDurationMinutes: number,
   sourcedMaterials: Material[],
+  extractionOverrides: ForcedExtraction,
 ): RecipeNode {
   const outputAmount =
     recipe.byproduct !== null && recipe.byproduct.material === targetMaterial.id
@@ -214,6 +226,7 @@ function createRecipeNode(
           `${path}>${material.id}`,
           rootDurationMinutes,
           sourcedMaterials,
+          extractionOverrides,
         ),
       ];
     }),
