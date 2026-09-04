@@ -34,7 +34,7 @@ export type SourcedNode = TreeNodeBase & {
 };
 
 export type TreeNode = RawMaterialNode | RecipeNode | SourcedNode;
-
+type NodeKind = TreeNode['kind'];
 /**
  * Has the form Material1>Material2>...>MaterialN.
  */
@@ -94,17 +94,29 @@ function createRootNode(
   recipeOverrides: ForcedRecipe,
   extractableMaterials: MaterialId[],
 ): TreeNode {
-  if (sourcedMaterials.some((m) => m.id === targetMaterial.id)) {
-    return createSourcedNode(currentPath, 1, targetMaterial);
-  }
   const recipe = selectProducingRecipe(
     targetMaterial,
     availableRecipes,
     recipeChoices,
     currentPath,
   );
-  if (recipeOverrides.includes(currentPath) || recipe === undefined) {
+  const targetKind = calculateNodeKind(
+    targetMaterial.id,
+    sourcedMaterials,
+    recipeOverrides,
+    recipe,
+    currentPath,
+    extractableMaterials,
+  );
+  if (targetKind === 'sourced') {
+    return createSourcedNode(currentPath, 1, targetMaterial);
+  }
+  if (targetKind === 'rawMaterial') {
     return createRawMaterialNode(currentPath, targetMaterial, 1);
+  }
+
+  if (recipe === undefined) {
+    throw new Error('Expected recipe node but no recipe was available');
   }
 
   const outputQuantity =
@@ -141,6 +153,29 @@ function hasExtractionRecipe(materialId: string, extractableMaterials: MaterialI
   return extractableMaterials.some((m) => m === materialId);
 }
 
+function calculateNodeKind(
+  targetMaterialId: MaterialId,
+  sourcedMaterials: Material[],
+  recipeOverrides: ForcedRecipe,
+  selectedRecipe: Recipe | undefined,
+  currentPath: string,
+  extractableMaterials: MaterialId[],
+): NodeKind {
+  if (isSourced(targetMaterialId, sourcedMaterials)) {
+    return 'sourced';
+  }
+  if (hasUsableCraftingOverride(currentPath, recipeOverrides, selectedRecipe)) {
+    return 'recipe';
+  }
+  if (hasExtractionRecipe(targetMaterialId, extractableMaterials)) {
+    return 'rawMaterial';
+  }
+  if (selectedRecipe !== undefined) {
+    return 'recipe';
+  }
+  return 'rawMaterial';
+}
+
 function createTreeNodeRecursive(
   targetMaterial: Material,
   targetAmount: number,
@@ -153,37 +188,48 @@ function createTreeNodeRecursive(
   recipeOverrides: ForcedRecipe,
   extractableMaterials: MaterialId[],
 ): TreeNode {
-  if (isSourced(targetMaterial.id, sourcedMaterials)) {
-    return createSourcedNode(currentPath, targetAmount, targetMaterial);
-  }
   const recipe = selectProducingRecipe(
     targetMaterial,
     availableRecipes,
     recipeChoices,
     currentPath,
   );
-  if (hasUsableCraftingOverride(currentPath, recipeOverrides, recipe)) {
-    return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
+  const targetKind = calculateNodeKind(
+    targetMaterial.id,
+    sourcedMaterials,
+    recipeOverrides,
+    recipe,
+    currentPath,
+    extractableMaterials,
+  );
+  switch (targetKind) {
+    case 'rawMaterial': {
+      return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
+    }
+    case 'recipe': {
+      return createRecipeNode(
+        currentPath,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        recipe!,
+        availableMaterials,
+        availableRecipes,
+        recipeChoices,
+        targetAmount,
+        targetMaterial,
+        rootDurationMinutes,
+        sourcedMaterials,
+        recipeOverrides,
+        extractableMaterials,
+      );
+    }
+    case 'sourced': {
+      return createSourcedNode(currentPath, targetAmount, targetMaterial);
+    }
+    default: {
+      targetKind satisfies never;
+      return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
+    }
   }
-  if (hasExtractionRecipe(targetMaterial.id, extractableMaterials)) {
-    return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
-  }
-  if (recipe !== undefined) {
-    return createRecipeNode(
-      currentPath,
-      recipe,
-      availableMaterials,
-      availableRecipes,
-      recipeChoices,
-      targetAmount,
-      targetMaterial,
-      rootDurationMinutes,
-      sourcedMaterials,
-      recipeOverrides,
-      extractableMaterials,
-    );
-  }
-  return createRawMaterialNode(currentPath, targetMaterial, targetAmount);
 }
 
 export function selectProducingRecipe(
