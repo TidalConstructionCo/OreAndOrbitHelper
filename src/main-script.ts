@@ -409,8 +409,11 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
     state.craftingTree.targetMaterial,
     state.gameData.materialData.data,
     state.gameData.recipeData.data,
+    state.gameData.extractionData.data.map((e) => e.material),
     state.craftingTree.recipeChoices,
     state.craftingTree.sourcedMaterials,
+    // TODO: provide recipe overrides
+    [],
   );
 
   renderCraftingTree(
