@@ -94,8 +94,6 @@ export function renderCraftingTree(
       );
     });
 
-  // const initialTransform = d3.zoomIdentity.translate(170 - (minX ?? 0), 80);
-
   const zoom = d3
     .zoom<SVGSVGElement, unknown>()
     .scaleExtent([0.15, 8])
