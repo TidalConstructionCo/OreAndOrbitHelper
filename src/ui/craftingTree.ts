@@ -21,6 +21,9 @@ export function renderCraftingTree(
   onRecipeChoiceChanged: (path: string, recipe: Recipe) => void,
   onForceRecipeOverrideChanged: (path: TreePath, isRaw: boolean) => void,
 ): void {
+  const existingSvg = treeElement.querySelector<SVGSVGElement>(':scope > svg');
+
+  const previousTransform = existingSvg !== null ? d3.zoomTransform(existingSvg) : undefined;
   treeElement.replaceChildren();
 
   const treeWidth = Math.max(treeElement.clientWidth, 320);
@@ -28,7 +31,7 @@ export function renderCraftingTree(
 
   const treeLayout = d3
     .tree<TreeNode>()
-    .nodeSize([300, 175])
+    .nodeSize([220, 175])
     .separation((a, b) => (a.parent === b.parent ? 1.4 : 2));
 
   const root = treeLayout(d3.hierarchy<TreeNode>(rootNode));
@@ -91,8 +94,6 @@ export function renderCraftingTree(
       );
     });
 
-  const initialTransform = d3.zoomIdentity.translate(170 - (minX ?? 0), 80);
-
   const zoom = d3
     .zoom<SVGSVGElement, unknown>()
     .scaleExtent([0.15, 8])
@@ -100,9 +101,19 @@ export function renderCraftingTree(
       zoomLayer.attr('transform', event.transform.toString());
     });
 
-  svg.call(zoom).call((selection): void => {
-    zoom.transform(selection, initialTransform);
-  });
+  svg.call(zoom);
+
+  if (previousTransform !== undefined) {
+    svg.call((selection): void => {
+      zoom.transform(selection, previousTransform);
+    });
+  } else {
+    const initialTransform = d3.zoomIdentity.translate(170 - (minX ?? 0), 80);
+
+    svg.call((selection): void => {
+      zoom.transform(selection, initialTransform);
+    });
+  }
 }
 
 function createNode(
