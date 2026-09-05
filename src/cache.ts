@@ -4,6 +4,7 @@ export const CACHE_KEYS = {
   materials: 'cache-materials',
   recipes: 'cache-recipes',
   locations: 'cache-locations',
+  buildings: 'cache-buildings',
 } as const;
 
 type CachedValue<T> = {
@@ -18,7 +19,7 @@ function createCachedValueSchema<T>(dataSchema: z.ZodType<T>): z.ZodType<CachedV
   });
 }
 
-export function saveToCache<T>(key: string, data: T): void {
+export function saveToCache(key: string, data: unknown): void {
   const value = {
     timestamp: Date.now(),
     data,
@@ -31,7 +32,7 @@ export function loadCache<T>(key: string, dataSchema: z.ZodType<T>): CachedValue
   // console.log(`Loading ${key}`);
   const stored = localStorage.getItem(key);
 
-  if (!stored) {
+  if (stored === null) {
     console.log(`Not found.`);
     return undefined;
   }

@@ -1,5 +1,5 @@
 // import type { Force } from 'd3';
-import type { Material, Recipe } from '../../api-access';
+import type { Building, Material, Recipe } from '../../api-access';
 import type { MaterialId } from '../../app/state';
 
 type TreeNodeBase = {
@@ -29,6 +29,7 @@ export type RecipeNode = TreeNodeBase & {
   totalDuration: number;
   utilization: number;
   hasExtractionRecipe: boolean;
+  building: Building;
 };
 
 export type SourcedNode = TreeNodeBase & {
@@ -54,6 +55,7 @@ export function buildTree(
   recipeChoices: RecipeChoices,
   sourcedMaterials: Material[],
   recipeOverrides: ForcedRecipe,
+  buildings: Building[],
 ): CraftingTree {
   const path: TreePath = targetMaterial.id;
   const root = createRootNode(
@@ -65,6 +67,7 @@ export function buildTree(
     sourcedMaterials,
     recipeOverrides,
     extractableMaterials,
+    buildings,
   );
 
   return { root };
@@ -92,6 +95,7 @@ function createRootNode(
   sourcedMaterials: Material[],
   recipeOverrides: ForcedRecipe,
   extractableMaterials: MaterialId[],
+  buildings: Building[],
 ): TreeNode {
   const recipe = selectProducingRecipe(
     targetMaterial,
@@ -133,6 +137,7 @@ function createRootNode(
     sourcedMaterials,
     recipeOverrides,
     extractableMaterials,
+    buildings,
   );
 }
 
@@ -186,6 +191,7 @@ function createTreeNodeRecursive(
   sourcedMaterials: Material[],
   recipeOverrides: ForcedRecipe,
   extractableMaterials: MaterialId[],
+  buildings: Building[],
 ): TreeNode {
   const recipe = selectProducingRecipe(
     targetMaterial,
@@ -219,6 +225,7 @@ function createTreeNodeRecursive(
         sourcedMaterials,
         recipeOverrides,
         extractableMaterials,
+        buildings,
       );
     }
     case 'sourced': {
@@ -268,6 +275,7 @@ function createRecipeNode(
   sourcedMaterials: Material[],
   recipeOverrides: ForcedRecipe,
   extractableMaterials: MaterialId[],
+  buildings: Building[],
 ): RecipeNode {
   const outputAmount =
     recipe.byproduct !== null && recipe.byproduct.material === targetMaterial.id
@@ -277,6 +285,9 @@ function createRecipeNode(
   const recipeDurationMinutes = totalCycles * recipe.batch_minutes;
   const utilization = recipeDurationMinutes / rootDurationMinutes;
   const hasExtractionRecipe = extractableMaterials.some((m) => m === targetMaterial.id);
+  // TODO: change data so I dont need the exclamation mark
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const building = buildings.find((b) => b.id === recipe.building)!;
   const node: RecipeNode = {
     kind: 'recipe',
     recipe: recipe,
@@ -284,6 +295,7 @@ function createRecipeNode(
     durationPerCycle: recipe.batch_minutes,
     outputAmount: outputAmount,
     targetAmount: targetAmount,
+    building: building,
     utilization: utilization,
     recipeChoices: getProducingRecipes(targetMaterial, availableRecipes),
     targetMaterial,
@@ -307,6 +319,7 @@ function createRecipeNode(
           sourcedMaterials,
           recipeOverrides,
           extractableMaterials,
+          buildings,
         ),
       ];
     }),

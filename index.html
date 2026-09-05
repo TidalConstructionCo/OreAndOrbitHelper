@@ -562,6 +562,25 @@
         font-size: 11px;
         cursor: pointer;
       }
+
+      .recipe-metrics {
+        display: grid;
+        grid-template-columns: 24px minmax(0, 1fr);
+        column-gap: 6px;
+        align-items: center;
+      }
+
+      .building-icon {
+        grid-row: 1 / span 2;
+        width: 22px;
+        height: 36px;
+        object-fit: contain;
+        align-self: center;
+      }
+
+      .recipe-metric-lines {
+        min-width: 0;
+      }
     </style>
   </head>
 

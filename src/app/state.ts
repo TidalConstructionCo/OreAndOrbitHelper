@@ -1,4 +1,5 @@
 import type {
+  BuildingsResponse,
   ExtractionResponse,
   Material,
   MaterialsResponse,
@@ -31,6 +32,7 @@ export type GameData = {
   materialData: MaterialsResponse;
   recipeData: RecipesResponse;
   extractionData: ExtractionResponse;
+  buildingData: BuildingsResponse;
 };
 
 export type AppState = {
@@ -58,6 +60,7 @@ export function createInitialState(): AppState {
       extractionData: { data: [] },
       materialData: { data: [] },
       recipeData: { data: [] },
+      buildingData: { data: [] },
     },
   };
 }

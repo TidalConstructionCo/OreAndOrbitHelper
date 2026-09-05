@@ -18,7 +18,9 @@ import { API_KEY_STORAGE_KEY, getApiKey, initializeApiPageNew } from './api-key.
 import { renderSummary } from './ui/summary';
 import type { Recipe } from './api-access';
 import {
+  BuildingsResponseSchema,
   ExtractionResponseSchema,
+  getBuildingData,
   getExtraction,
   getMaterials,
   getRecipes,
@@ -50,6 +52,7 @@ function loadCachedGameData(state: AppState): AppState {
   const cachedMaterials = loadCache(CACHE_KEYS.materials, MaterialsResponseSchema);
   const cachedRecipes = loadCache(CACHE_KEYS.recipes, RecipesResponseSchema);
   const cachedExtraction = loadCache(CACHE_KEYS.locations, ExtractionResponseSchema);
+  const cachedBuildings = loadCache(CACHE_KEYS.buildings, BuildingsResponseSchema);
 
   return {
     ...state,
@@ -59,6 +62,8 @@ function loadCachedGameData(state: AppState): AppState {
       recipeData: cachedRecipes !== undefined ? cachedRecipes.data : state.gameData.recipeData,
       extractionData:
         cachedExtraction !== undefined ? cachedExtraction.data : state.gameData.extractionData,
+      buildingData:
+        cachedBuildings !== undefined ? cachedBuildings.data : state.gameData.buildingData,
     },
   };
 }
@@ -95,6 +100,12 @@ async function updateGameData(state: AppState): Promise<AppState> {
   if (extractionApiResult !== undefined) {
     result.gameData.extractionData = extractionApiResult;
     saveToCache(CACHE_KEYS.locations, extractionApiResult);
+  }
+
+  const buildingApiResult = await getBuildingData();
+  if (buildingApiResult !== undefined) {
+    result.gameData.buildingData = buildingApiResult;
+    saveToCache(CACHE_KEYS.buildings, buildingApiResult);
   }
 
   return result;
@@ -307,7 +318,8 @@ function isGameDataReady(gameData: GameData): boolean {
   return (
     gameData.materialData.data.length > 0 &&
     gameData.recipeData.data.length > 0 &&
-    gameData.extractionData.data.length > 0
+    gameData.extractionData.data.length > 0 &&
+    gameData.buildingData.data.length > 0
   );
 }
 
@@ -413,6 +425,7 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
     state.craftingTree.recipeChoices,
     state.craftingTree.sourcedMaterials,
     state.craftingTree.recipeOverrides,
+    state.gameData.buildingData.data,
   );
 
   renderCraftingTree(
@@ -449,6 +462,8 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
         state.gameData.extractionData.data,
         state.craftingTree.extractionYields,
       ),
+      state.gameData.buildingData.data,
+      state.gameData.materialData.data,
     );
   }
 }

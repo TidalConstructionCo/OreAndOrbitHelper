@@ -29,6 +29,7 @@ describe('getSummedUtilization', () => {
       new Map(),
       [],
       [],
+      [],
     );
 
     // act
@@ -68,6 +69,7 @@ describe('getSummedUtilization', () => {
       [inputMaterialRecipe, inputMaterialRecipe2, mainRecipe],
       [],
       new Map(),
+      [],
       [],
       [],
     );
