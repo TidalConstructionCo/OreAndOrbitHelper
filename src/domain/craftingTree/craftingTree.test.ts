@@ -16,7 +16,7 @@ describe('buildTree', () => {
         hasCraftingRecipe: false,
       },
     };
-    expect(buildTree(targetMaterial, [], [], [], new Map<TreePath, Recipe>(), [], [])).toEqual(
+    expect(buildTree(targetMaterial, [], [], [], new Map<TreePath, Recipe>(), [], [], [])).toEqual(
       expected,
     );
   });
@@ -51,6 +51,7 @@ describe('buildTree', () => {
       [],
       new Map<TreePath, Recipe>(),
       [intermediateMaterial],
+      [],
       [],
     );
 
@@ -93,6 +94,7 @@ describe('buildTree', () => {
       new Map<TreePath, Recipe>(),
       [],
       [`${targetMaterial.id}>${intermediateMaterial.id}`],
+      [],
     );
 
     // assert

@@ -425,6 +425,7 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
     state.craftingTree.recipeChoices,
     state.craftingTree.sourcedMaterials,
     state.craftingTree.recipeOverrides,
+    state.gameData.buildingData.data,
   );
 
   renderCraftingTree(

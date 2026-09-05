@@ -268,7 +268,15 @@ function createRecipeNode(
     appendRecipeDisplay(content, node);
   }
 
-  content
+  const metrics = content.append('div').attr('class', 'recipe-metrics');
+  metrics
+    .append('img')
+    .attr('class', 'building-icon')
+    .attr('src', node.building.icon)
+    .attr('aria-hidden', 'true');
+
+  const metricsLines = metrics.append('div').attr('class', 'recipe-metric-lines');
+  metricsLines
     .append('div')
     .attr('class', 'node-line details')
     .text(
@@ -276,7 +284,7 @@ function createRecipeNode(
         `(${formatAmountNew(node.totalDuration)} min)`,
     );
 
-  content
+  metricsLines
     .append('div')
     .attr('class', 'node-line details')
     .text(`${formatPercentNew(node.utilization)} utilization`);

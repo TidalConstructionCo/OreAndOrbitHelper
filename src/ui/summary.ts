@@ -1,7 +1,7 @@
 import type { Building, Material, Recipe } from '../api-access';
 import type { CraftingTree } from '../domain/craftingTree/craftingTree';
 import type { RecipeUtilization } from '../domain/craftingTree/treeAnalysis';
-import { formatAmountNew, formatPercentNew, formatRecipeNew } from './formatting';
+import { formatAmountNew, formatPercentNew } from './formatting';
 
 export function renderSummary(
   tree: CraftingTree,
