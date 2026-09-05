@@ -318,7 +318,8 @@ function isGameDataReady(gameData: GameData): boolean {
   return (
     gameData.materialData.data.length > 0 &&
     gameData.recipeData.data.length > 0 &&
-    gameData.extractionData.data.length > 0
+    gameData.extractionData.data.length > 0 &&
+    gameData.buildingData.data.length > 0
   );
 }
 
@@ -460,6 +461,8 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
         state.gameData.extractionData.data,
         state.craftingTree.extractionYields,
       ),
+      state.gameData.buildingData.data,
+      state.gameData.materialData.data,
     );
   }
 }
