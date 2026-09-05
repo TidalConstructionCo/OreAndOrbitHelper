@@ -54,8 +54,6 @@ function createFormattedMaterialAmount(
   return [formattedAmount, icon, displayName];
 }
 
-// function createFormattedRecipeInputs() {}
-
 function combineMaterials(materialFoo: HTMLElement[][]): HTMLElement[] {
   const firstItem = materialFoo[0];
   if (firstItem === undefined) {
