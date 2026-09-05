@@ -31,21 +31,6 @@
         margin-bottom: 24px;
       }
 
-      @media (max-width: 600px) {
-        body {
-          padding: 12px;
-        }
-
-        #tree {
-          height: calc(100vh - 230px);
-          min-height: 320px;
-        }
-
-        #tree-search {
-          width: 100%;
-        }
-      }
-
       select {
         padding: 6px 8px;
         font: inherit;
@@ -70,16 +55,6 @@
 
       .node {
         transition: opacity 0.2s ease;
-      }
-
-      .tree-node.search-dim {
-        opacity: 0.25;
-      }
-
-      .tree-node.search-match rect {
-        stroke: #ffd54f;
-        stroke-width: 5px;
-        filter: drop-shadow(0 0 8px #ffd54f);
       }
 
       .tree-node.search-match text {
@@ -309,18 +284,6 @@
         font-weight: bold;
       }
 
-      .app-layout {
-        display: flex;
-        min-height: 100vh;
-        align-items: stretch;
-      }
-
-      .content {
-        flex: 1;
-        padding: 24px;
-        min-width: 0;
-      }
-
       .tool-button {
         display: block;
         width: 100%;
@@ -348,38 +311,6 @@
         display: block;
       }
 
-      .sidebar {
-        position: sticky;
-        top: 0;
-
-        display: flex;
-        flex-direction: column;
-
-        flex: 0 0 220px;
-        box-sizing: border-box;
-        height: 100vh;
-        padding: 20px;
-
-        background: #1d2430;
-        color: white;
-      }
-
-      @media (max-width: 600px) {
-        .app-layout {
-          flex-direction: column;
-        }
-
-        .sidebar {
-          width: auto;
-        }
-
-        .tool-button {
-          display: inline-block;
-          width: auto;
-          margin-right: 6px;
-        }
-      }
-
       #storedKey {
         display: flex;
         align-items: center;
@@ -401,27 +332,10 @@
       }
 
       @media (max-width: 600px) {
-        .sidebar {
-          width: auto;
-          min-height: auto;
-        }
-
         .reload-game-data {
           width: auto;
           margin-top: 16px;
           text-align: center;
-        }
-      }
-
-      @media (max-width: 600px) {
-        .app-layout {
-          flex-direction: column;
-        }
-
-        .sidebar {
-          width: 100%;
-          min-height: 100vh;
-          flex: none;
         }
 
         .tool-button {
@@ -581,12 +495,185 @@
       .recipe-metric-lines {
         min-width: 0;
       }
+
+      /* Prevent child elements from creating horizontal page overflow */
+      html,
+      body {
+        overflow-x: hidden;
+      }
+
+      /* Desktop layout */
+      .app-layout {
+        display: flex;
+        min-height: 100vh;
+        align-items: stretch;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+
+        display: flex;
+        flex-direction: column;
+
+        flex: 0 0 220px;
+        width: 220px;
+        height: 100vh;
+        box-sizing: border-box;
+        padding: 20px;
+
+        background: #1d2430;
+        color: white;
+      }
+
+      .content {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 24px;
+      }
+
+      /* Hidden on desktop */
+      .menu-toggle,
+      .close-sidebar,
+      .sidebar-backdrop {
+        display: none;
+      }
+
+      /* Mobile layout */
+      @media (max-width: 600px) {
+        body {
+          padding: 0;
+        }
+
+        .content {
+          width: 100%;
+          padding: 56px 12px 12px;
+        }
+
+        .sidebar {
+          position: fixed;
+          z-index: 1000;
+          inset: 0 auto 0 0;
+
+          width: min(82vw, 280px);
+          height: 100vh;
+          min-height: 100vh;
+          padding: 16px;
+
+          transform: translateX(-100%);
+          transition: transform 0.25s ease;
+          box-shadow: 4px 0 18px rgb(0 0 0 / 30%);
+        }
+
+        .sidebar.is-open {
+          transform: translateX(0);
+        }
+
+        .menu-toggle {
+          display: block;
+          position: fixed;
+          z-index: 900;
+          top: 12px;
+          left: 12px;
+
+          padding: 8px 11px;
+          border: 0;
+          border-radius: 6px;
+          background: #2563eb;
+          color: white;
+          font: inherit;
+          font-size: 1.2rem;
+          cursor: pointer;
+        }
+
+        .close-sidebar {
+          display: block;
+          align-self: flex-end;
+
+          padding: 0 4px;
+          border: 0;
+          background: transparent;
+          color: white;
+          font-size: 1.8rem;
+          line-height: 1;
+          cursor: pointer;
+        }
+
+        .sidebar-backdrop {
+          display: block;
+          position: fixed;
+          z-index: 999;
+          inset: 0;
+
+          background: rgb(0 0 0 / 45%);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.25s ease;
+        }
+
+        .sidebar-backdrop.is-visible {
+          opacity: 1;
+          pointer-events: auto;
+        }
+
+        .tool-button {
+          display: block;
+          width: 100%;
+          margin: 8px 0;
+        }
+
+        #reload-game-data {
+          width: 100%;
+          margin-top: auto;
+        }
+
+        #tree {
+          height: calc(100vh - 230px);
+          min-height: 320px;
+        }
+
+        #tree-search {
+          width: 100%;
+        }
+      }
+
+      /* Accessible text that is visually hidden */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
     </style>
   </head>
 
   <body>
+    <button
+      id="menu-toggle"
+      class="menu-toggle"
+      type="button"
+      aria-controls="sidebar"
+      aria-expanded="false"
+    >
+      ☰
+      <span class="sr-only">Open navigation</span>
+    </button>
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
     <div class="app-layout">
-      <aside class="sidebar">
+      <aside class="sidebar" id="sidebar">
+        <button
+          id="close-sidebar"
+          class="close-sidebar"
+          type="button"
+          aria-label="Close navigation"
+        >
+          x
+        </button>
         <h2>Ore & Orbit</h2>
 
         <button class="tool-button active" data-tool="crafting-tree">Crafting Tree</button>

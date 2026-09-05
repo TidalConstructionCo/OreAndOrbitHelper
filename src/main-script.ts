@@ -257,11 +257,55 @@ function initialize(): void {
     },
   );
   initializeResizeHandler();
+  initializeSidebarClosing();
 
   update(newState);
 }
 
-// end new state stuff
+function initializeSidebarClosing(): void {
+  // TODO: think if I should deal with null
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const sidebar = document.getElementById('sidebar')!;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const menuToggle = document.getElementById('menu-toggle')!;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const closeSidebar = document.getElementById('close-sidebar')!;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const backdrop = document.getElementById('sidebar-backdrop')!;
+
+  function setSidebarOpen(isOpen: boolean): void {
+    sidebar.classList.toggle('is-open', isOpen);
+    backdrop.classList.toggle('is-visible', isOpen);
+    menuToggle.setAttribute('aria-expanded', String(isOpen));
+  }
+
+  menuToggle.addEventListener('click', () => {
+    setSidebarOpen(true);
+  });
+
+  closeSidebar.addEventListener('click', () => {
+    setSidebarOpen(false);
+  });
+
+  backdrop.addEventListener('click', () => {
+    setSidebarOpen(false);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      setSidebarOpen(false);
+    }
+  });
+
+  // Close the drawer after selecting a tab on mobile.
+  document.querySelectorAll('.tool-button').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (window.innerWidth <= 600) {
+        setSidebarOpen(false);
+      }
+    });
+  });
+}
 
 function updateAvailability(state: AppState, material: MaterialId, amount: number): AppState {
   return {
