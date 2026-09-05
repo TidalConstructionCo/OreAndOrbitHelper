@@ -11,7 +11,7 @@ const MaterialSchema = z.object({
   tier: z.number(),
   mass_kg: z.number(),
   volume_m3: z.number(),
-  icon: z.string().url(),
+  icon: z.url(),
   buy: z.number().nullable(),
   sell: z.number().nullable(),
 });
@@ -98,7 +98,7 @@ export async function getMaterials(): Promise<MaterialsResponse | undefined> {
   });
 
   if (!response.ok) {
-    console.log(`Failed to fetch materials: ${response.status} ${response.statusText}`);
+    console.log(`Failed to fetch materials: ${String(response.status)} ${response.statusText}`);
     return undefined;
   }
 
@@ -126,7 +126,7 @@ export async function getRecipes(): Promise<RecipesResponse | undefined> {
   });
 
   if (!response.ok) {
-    console.log(`Failed to fetch recipes: ${response.status} ${response.statusText}`);
+    console.log(`Failed to fetch recipes: ${String(response.status)} ${response.statusText}`);
     return undefined;
   }
 
@@ -154,13 +154,56 @@ export async function getExtraction(): Promise<ExtractionResponse | undefined> {
   });
 
   if (!response.ok) {
-    console.log(`Failed to fetch recipes: ${response.status} ${response.statusText}`);
+    console.log(`Failed to fetch recipes: ${String(response.status)} ${response.statusText}`);
     return undefined;
   }
 
   const recipes: unknown = await response.json();
 
   const result = ExtractionResponseSchema.safeParse(recipes);
+  if (!result.success) {
+    console.log(result.error.issues);
+    return undefined;
+  }
+  return result.data;
+}
+
+export const BuildingSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  icon: z.url(),
+  power_draw_mw: z.number(),
+  research: z.string().nullable(),
+});
+
+export const BuildingsResponseSchema = z.object({
+  data: z.array(BuildingSchema),
+});
+
+export type Building = z.infer<typeof BuildingSchema>;
+export type BuildingsResponse = z.infer<typeof BuildingsResponseSchema>;
+
+export async function getBuildingData(): Promise<BuildingsResponse | undefined> {
+  const apiKey = getApiKey();
+  if (apiKey === undefined) {
+    return undefined;
+  }
+
+  const response = await fetch(`${baseUri}buildings`, {
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      Accept: 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    console.log(`Failed to fetch buildings: ${String(response.status)} ${response.statusText}`);
+    return undefined;
+  }
+
+  const recipes: unknown = await response.json();
+
+  const result = BuildingsResponseSchema.safeParse(recipes);
   if (!result.success) {
     console.log(result.error.issues);
     return undefined;
