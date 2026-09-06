@@ -1,7 +1,7 @@
-import type { Building, Recipe } from '../api-access';
+import type { Recipe } from '../api-access';
 import type { CraftingTree } from '../domain/craftingTree/craftingTree';
 import type { RecipeUtilization } from '../domain/craftingTree/treeAnalysis';
-import type { Material } from '../domain/gameData';
+import type { Material, Building } from '../domain/gameData';
 import { formatAmountNew, formatPercentNew } from './formatting';
 
 export function renderSummary(
@@ -135,7 +135,7 @@ function createUtilizationDisplay(
       const icon = document.createElement('img');
       icon.width = 24;
       icon.height = 24;
-      icon.src = building.icon;
+      icon.src = building.iconUrl;
       itemContainer.appendChild(icon);
     }
     const text = document.createElement('span');

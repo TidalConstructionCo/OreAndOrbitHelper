@@ -273,7 +273,7 @@ function createRecipeNode(
   metrics
     .append('img')
     .attr('class', 'building-icon')
-    .attr('src', node.building.icon)
+    .attr('src', node.building.iconUrl)
     .attr('aria-hidden', 'true');
 
   const metricsLines = metrics.append('div').attr('class', 'recipe-metric-lines');

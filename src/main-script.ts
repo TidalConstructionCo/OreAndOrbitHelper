@@ -39,7 +39,7 @@ import {
   getSummedSourcedItems,
   getSummedUtilization,
 } from './domain/craftingTree/treeAnalysis.js';
-import { convertMaterial } from './domain/gameData.js';
+import { convertBuilding, convertMaterial } from './domain/gameData.js';
 
 let GLOBAL_STATE = createInitialState();
 const buttons = document.querySelectorAll<HTMLElement>('.tool-button');
@@ -65,8 +65,10 @@ function loadCachedGameData(state: AppState): AppState {
       recipeData: cachedRecipes !== undefined ? cachedRecipes.data : state.gameData.recipeData,
       extractionData:
         cachedExtraction !== undefined ? cachedExtraction.data : state.gameData.extractionData,
-      buildingData:
-        cachedBuildings !== undefined ? cachedBuildings.data : state.gameData.buildingData,
+      buildings:
+        cachedBuildings !== undefined
+          ? cachedBuildings.data.data.map((b) => convertBuilding(b))
+          : state.gameData.buildings,
     },
   };
 }
@@ -107,7 +109,7 @@ async function updateGameData(state: AppState): Promise<AppState> {
 
   const buildingApiResult = await getBuildingData();
   if (buildingApiResult !== undefined) {
-    result.gameData.buildingData = buildingApiResult;
+    result.gameData.buildings = buildingApiResult.data.map(convertBuilding);
     saveToCache(CACHE_KEYS.buildings, buildingApiResult);
   }
 
@@ -366,7 +368,7 @@ function isGameDataReady(gameData: GameData): boolean {
     gameData.materials.length > 0 &&
     gameData.recipeData.data.length > 0 &&
     gameData.extractionData.data.length > 0 &&
-    gameData.buildingData.data.length > 0
+    gameData.buildings.length > 0
   );
 }
 
@@ -472,7 +474,7 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
     state.craftingTree.recipeChoices,
     state.craftingTree.sourcedMaterials,
     state.craftingTree.recipeOverrides,
-    state.gameData.buildingData.data,
+    state.gameData.buildings,
   );
 
   renderCraftingTree(
@@ -509,7 +511,7 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
         state.gameData.extractionData.data,
         state.craftingTree.extractionYields,
       ),
-      state.gameData.buildingData.data,
+      state.gameData.buildings,
       state.gameData.materials,
     );
   }

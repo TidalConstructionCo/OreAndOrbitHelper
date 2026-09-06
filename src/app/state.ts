@@ -1,15 +1,13 @@
 import type {
-  BuildingsResponse,
+  // BuildingsResponse,
   ExtractionResponse,
-  // Material,
-  // MaterialsResponse,
   RecipesResponse,
 } from '../api-access';
 import type {
   ForcedRecipe as RecipeOverrides,
   RecipeChoices,
 } from '../domain/craftingTree/craftingTree';
-import type { Material } from '../domain/gameData';
+import type { Building, Material } from '../domain/gameData';
 
 export type TabId = 'crafting-tree' | 'settings';
 // TODO: use apiKeyInput in event handler update function instead of dom element. Or is it useless?
@@ -34,7 +32,7 @@ export type GameData = {
   materials: Material[];
   recipeData: RecipesResponse;
   extractionData: ExtractionResponse;
-  buildingData: BuildingsResponse;
+  buildings: Building[];
 };
 
 export type AppState = {
@@ -62,7 +60,7 @@ export function createInitialState(): AppState {
       extractionData: { data: [] },
       materials: [],
       recipeData: { data: [] },
-      buildingData: { data: [] },
+      buildings: [],
     },
   };
 }
