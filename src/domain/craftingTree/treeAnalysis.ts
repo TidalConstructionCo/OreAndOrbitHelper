@@ -1,6 +1,6 @@
-import type { Extraction, Recipe } from '../../api-access';
+import type { Recipe } from '../../api-access';
 import type { MaterialId } from '../../app/state';
-import type { Material } from '../gameData';
+import type { ExtractionRecipe, Material } from '../gameData';
 import type {
   CraftingTree,
   RawMaterialNode,
@@ -109,7 +109,7 @@ export function getSummedSourcedItems(tree: CraftingTree): Map<Material, number>
 // TODO: move somewhere more fitting? Pass materials in instead of tree to reduce cost?
 export function getExtractorRequirements(
   tree: CraftingTree,
-  extractionRecipes: Extraction[],
+  extractionRecipes: ExtractionRecipe[],
   // TODO: maybe use map instead? idk?
   extractionYields: Record<MaterialId, number>,
 ): Map<Material, number> {
@@ -117,18 +117,15 @@ export function getExtractorRequirements(
   const result: Map<Material, number> = new Map();
   if (tree.root.kind !== 'recipe') {
     const extractionRecipe = extractionRecipes.find(
-      (r) => r.material === tree.root.targetMaterial.id,
+      (r) => r.material.id === tree.root.targetMaterial.id,
     );
     if (extractionRecipe !== undefined) {
-      result.set(
-        tree.root.targetMaterial,
-        tree.root.targetAmount / extractionRecipe.units_per_batch,
-      );
+      result.set(tree.root.targetMaterial, tree.root.targetAmount / extractionRecipe.duration);
     }
     return result;
   }
   for (const [material, amount] of rawMaterials) {
-    const extractionRecipe = extractionRecipes.find((r) => r.material === material.id);
+    const extractionRecipe = extractionRecipes.find((r) => r.material.id === material.id);
     if (extractionRecipe !== undefined) {
       const yld = extractionYields[material.id];
       const availability = yld !== undefined ? yld : 5;
@@ -139,8 +136,8 @@ export function getExtractorRequirements(
         (result.get(material) ?? 0) +
           getRequiredExtractors(
             amount,
-            extractionRecipe.batch_minutes,
-            extractionRecipe.units_per_batch,
+            extractionRecipe.duration,
+            extractionRecipe.amount,
             availabilityModifier,
             tree.root.totalDuration,
           ),

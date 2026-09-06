@@ -121,6 +121,7 @@ export function tryConvertExtractionRecipe(
 ): ExtractionRecipe | undefined {
   const material = availableMaterials.find((m) => m.id === data.material);
   if (material === undefined) {
+    // TODO: log?
     return undefined;
   }
 

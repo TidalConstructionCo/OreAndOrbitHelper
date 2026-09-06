@@ -6,22 +6,17 @@ const settingsCache: Map<string, HTMLDivElement> = new Map();
 
 export function renderExtractorSettingsNew(state: AppState, parent: HTMLElement): void {
   const visibleIds = new Set<string>();
-  for (const entry of state.gameData.extractionData.data) {
-    const materialId = entry.material;
-    const material = state.gameData.materials.find((mat) => mat.id === materialId);
-    if (material === undefined) {
-      continue;
-    }
-    const id = getElementIdForMaterial(materialId);
-    const value = String(state.craftingTree.extractionYields[materialId] ?? 1);
+  for (const extractionRecipe of state.gameData.extractionRecipes) {
+    const id = getElementIdForMaterial(extractionRecipe.material.id);
+    const value = String(state.craftingTree.extractionYields[extractionRecipe.material.id] ?? 1);
     visibleIds.add(id);
 
     let container = settingsCache.get(id);
     if (container === undefined) {
-      container = createExtractorSettingsElement(id, material, value);
+      container = createExtractorSettingsElement(id, extractionRecipe.material, value);
       settingsCache.set(id, container);
     }
-    updateContainer(container, material, id, value);
+    updateContainer(container, extractionRecipe.material, id, value);
 
     if (container.parentElement !== parent) {
       parent.appendChild(container);

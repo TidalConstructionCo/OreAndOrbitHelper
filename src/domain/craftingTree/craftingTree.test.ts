@@ -90,7 +90,7 @@ describe('buildTree', () => {
       targetMaterial,
       [targetMaterial, rawMaterial1, rawMaterial2, intermediateMaterial],
       [recipe1, recipe2],
-      [intermediateMaterial.id],
+      [intermediateMaterial],
       new Map<TreePath, Recipe>(),
       [],
       [`${targetMaterial.id}>${intermediateMaterial.id}`],
