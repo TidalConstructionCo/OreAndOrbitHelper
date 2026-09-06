@@ -1,6 +1,7 @@
-import type { Building, Material, Recipe } from '../api-access';
+import type { Building, Recipe } from '../api-access';
 import type { CraftingTree } from '../domain/craftingTree/craftingTree';
 import type { RecipeUtilization } from '../domain/craftingTree/treeAnalysis';
+import type { Material } from '../domain/gameData';
 import { formatAmountNew, formatPercentNew } from './formatting';
 
 export function renderSummary(
@@ -47,7 +48,7 @@ function createFormattedMaterialAmount(
   const icon = document.createElement('img');
   icon.width = iconWidth;
   icon.height = iconHeight;
-  icon.src = material.icon;
+  icon.src = material.iconUrl;
   const displayName = document.createElement('span');
   displayName.textContent = ` ${material.name}`;
 
@@ -214,7 +215,7 @@ function createMaterialDisplay(material: Material, amount: number): HTMLDivEleme
   itemContainer.appendChild(itemAmount);
 
   const itemIcon = document.createElement('img');
-  itemIcon.src = material.icon;
+  itemIcon.src = material.iconUrl;
   itemIcon.width = 24;
   itemIcon.height = 24;
   itemContainer.appendChild(itemIcon);

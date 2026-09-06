@@ -3,6 +3,7 @@ import { getApiKey } from './api-key';
 const baseUri = 'https://oreandorbit.com/api/v1/';
 
 import { z } from 'zod';
+// import type { MaterialAmount } from './domain/gameData';
 
 const MaterialSchema = z.object({
   id: z.string(),

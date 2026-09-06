@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import type { HierarchyPointLink, HierarchyPointNode, Selection } from 'd3';
-import type { Material, Recipe } from '../api-access';
+import type { Recipe } from '../api-access';
 import type {
   RawMaterialNode,
   RecipeNode,
@@ -9,6 +9,7 @@ import type {
   TreePath,
 } from '../domain/craftingTree/craftingTree';
 import { formatAmountNew, formatPercentNew } from './formatting';
+import type { Material } from '../domain/gameData';
 
 type NodeGroup = Selection<SVGGElement, unknown, null, undefined>;
 type ContentSelection = Selection<HTMLDivElement, unknown, null, undefined>;
@@ -226,7 +227,7 @@ function addMaterialTitle(
   materialLine
     .append('img')
     .attr('class', 'material-icon')
-    .attr('src', material.icon)
+    .attr('src', material.iconUrl)
     .attr('width', 16)
     .attr('height', 16);
   materialLine.append('span').text(material.name);

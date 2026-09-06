@@ -1,16 +1,13 @@
-import type { Material, Recipe } from '../../api-access';
+import type { Recipe } from '../../api-access';
+import type { Material } from '../gameData';
 
 export function createDummyMaterial(options?: { id: string | undefined }): Material {
   return {
-    buy: null,
-    category: '',
-    icon: '',
+    buyPrice: undefined,
+    iconUrl: '',
     id: options?.id ?? 'MyID',
-    mass_kg: 0,
     name: 'My Name',
-    sell: null,
-    tier: 0,
-    volume_m3: 0,
+    sellPrice: undefined,
   };
 }
 

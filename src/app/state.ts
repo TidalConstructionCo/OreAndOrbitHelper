@@ -1,14 +1,15 @@
 import type {
   BuildingsResponse,
   ExtractionResponse,
-  Material,
-  MaterialsResponse,
+  // Material,
+  // MaterialsResponse,
   RecipesResponse,
 } from '../api-access';
 import type {
   ForcedRecipe as RecipeOverrides,
   RecipeChoices,
 } from '../domain/craftingTree/craftingTree';
+import type { Material } from '../domain/gameData';
 
 export type TabId = 'crafting-tree' | 'settings';
 // TODO: use apiKeyInput in event handler update function instead of dom element. Or is it useless?
@@ -29,7 +30,8 @@ type CraftingTreeState = {
 
 export type GameData = {
   // TODO: replace with actual domain types that get created from those?
-  materialData: MaterialsResponse;
+  // materialData: MaterialsResponse;
+  materials: Material[];
   recipeData: RecipesResponse;
   extractionData: ExtractionResponse;
   buildingData: BuildingsResponse;
@@ -58,7 +60,7 @@ export function createInitialState(): AppState {
     gameData: {
       // TODO: maybe omit the brackets
       extractionData: { data: [] },
-      materialData: { data: [] },
+      materials: [],
       recipeData: { data: [] },
       buildingData: { data: [] },
     },

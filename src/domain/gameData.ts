@@ -13,6 +13,7 @@ export type Material = {
   sellPrice: number | undefined;
 };
 
+// TODO: use these types instead of the zod types
 export function convertMaterial(data: MaterialData): Material {
   return {
     id: data.id,
@@ -55,6 +56,9 @@ export type Recipe = {
   duration: number;
   building: Building;
 };
+
+// TODO: coudl define like this
+// export type Outputs = [output: MaterialAmount, byproduct?: MaterialAmount];
 
 export function tryConvertRecipe(
   data: RecipeData,

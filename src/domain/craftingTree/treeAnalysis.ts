@@ -1,5 +1,6 @@
-import type { Extraction, Material, Recipe } from '../../api-access';
+import type { Extraction, Recipe } from '../../api-access';
 import type { MaterialId } from '../../app/state';
+import type { Material } from '../gameData';
 import type {
   CraftingTree,
   RawMaterialNode,

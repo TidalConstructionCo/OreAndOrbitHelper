@@ -39,6 +39,7 @@ import {
   getSummedSourcedItems,
   getSummedUtilization,
 } from './domain/craftingTree/treeAnalysis.js';
+import { convertMaterial } from './domain/gameData.js';
 
 let GLOBAL_STATE = createInitialState();
 const buttons = document.querySelectorAll<HTMLElement>('.tool-button');
@@ -57,8 +58,10 @@ function loadCachedGameData(state: AppState): AppState {
   return {
     ...state,
     gameData: {
-      materialData:
-        cachedMaterials !== undefined ? cachedMaterials.data : state.gameData.materialData,
+      materials:
+        cachedMaterials !== undefined
+          ? cachedMaterials.data.data.map((m) => convertMaterial(m))
+          : state.gameData.materials,
       recipeData: cachedRecipes !== undefined ? cachedRecipes.data : state.gameData.recipeData,
       extractionData:
         cachedExtraction !== undefined ? cachedExtraction.data : state.gameData.extractionData,
@@ -86,7 +89,7 @@ async function updateGameData(state: AppState): Promise<AppState> {
   const materialApiResult = await getMaterials();
   // TODO: streamline, almost duplicated to the cache load case
   if (materialApiResult !== undefined) {
-    result.gameData.materialData = materialApiResult;
+    result.gameData.materials = materialApiResult.data.map((m) => convertMaterial(m));
     saveToCache(CACHE_KEYS.materials, materialApiResult);
   }
 
@@ -155,7 +158,7 @@ function initializeResizeHandler(): void {
 }
 
 function updateSelectedTarget(state: AppState, selectedTarget: string): AppState {
-  const matchingMaterial = state.gameData.materialData.data.find((m) => m.id === selectedTarget);
+  const matchingMaterial = state.gameData.materials.find((m) => m.id === selectedTarget);
   if (matchingMaterial !== undefined) {
     return { ...state, craftingTree: { ...state.craftingTree, targetMaterial: matchingMaterial } };
   } else {
@@ -208,9 +211,9 @@ function initialize(): void {
   }
   if (
     newState.craftingTree.targetMaterial === undefined &&
-    newState.gameData.materialData.data[0] !== undefined
+    newState.gameData.materials[0] !== undefined
   ) {
-    newState = updateSelectedTarget(newState, newState.gameData.materialData.data[0].id);
+    newState = updateSelectedTarget(newState, newState.gameData.materials[0].id);
   }
 
   initializeReloadDataButton();
@@ -360,7 +363,7 @@ function renderToolbar(selectedTab: TabId): void {
 function isGameDataReady(gameData: GameData): boolean {
   // TODO: get a better way to determine
   return (
-    gameData.materialData.data.length > 0 &&
+    gameData.materials.length > 0 &&
     gameData.recipeData.data.length > 0 &&
     gameData.extractionData.data.length > 0 &&
     gameData.buildingData.data.length > 0
@@ -414,7 +417,7 @@ function renderMaterialSelect(state: AppState, select: HTMLSelectElement): void 
   const targetMaterial = state.craftingTree.targetMaterial;
   select.replaceChildren();
 
-  const materials = state.gameData.materialData.data;
+  const materials = state.gameData.materials;
   for (const material of materials) {
     const option = document.createElement('option');
     // TODO: one of them should be the display name
@@ -463,7 +466,7 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
   }
   const tree = buildTree(
     state.craftingTree.targetMaterial,
-    state.gameData.materialData.data,
+    state.gameData.materials,
     state.gameData.recipeData.data,
     state.gameData.extractionData.data.map((e) => e.material),
     state.craftingTree.recipeChoices,
@@ -507,7 +510,7 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
         state.craftingTree.extractionYields,
       ),
       state.gameData.buildingData.data,
-      state.gameData.materialData.data,
+      state.gameData.materials,
     );
   }
 }
@@ -580,7 +583,7 @@ function renderSourcedMaterials(state: AppState, parent: HTMLDivElement): void {
   const targetMaterial = state.craftingTree.selectedSourcedMaterial;
   select.replaceChildren();
 
-  const remainingMaterials = state.gameData.materialData.data.filter(
+  const remainingMaterials = state.gameData.materials.filter(
     (material) =>
       !state.craftingTree.sourcedMaterials.some((sourced) => sourced.id === material.id),
   );
@@ -683,7 +686,7 @@ function initializeAddSourcedMaterialButton(): void {
 }
 
 function updateSourcedMaterialList(state: AppState, selectedTarget: string): AppState {
-  const matchingMaterial = state.gameData.materialData.data.find((m) => m.id === selectedTarget);
+  const matchingMaterial = state.gameData.materials.find((m) => m.id === selectedTarget);
   if (matchingMaterial !== undefined) {
     return {
       ...state,
@@ -699,7 +702,7 @@ function updateSourcedMaterialList(state: AppState, selectedTarget: string): App
 }
 
 function updateSourcedMaterialSelect(state: AppState, selectedTarget: string): AppState {
-  const matchingMaterial = state.gameData.materialData.data.find((m) => m.id === selectedTarget);
+  const matchingMaterial = state.gameData.materials.find((m) => m.id === selectedTarget);
   if (matchingMaterial !== undefined) {
     return {
       ...state,

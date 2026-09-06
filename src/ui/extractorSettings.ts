@@ -1,5 +1,5 @@
-import type { Material } from '../api-access';
 import type { AppState } from '../app/state';
+import type { Material } from '../domain/gameData';
 import { getElementIdForMaterial } from './utils';
 
 const settingsCache: Map<string, HTMLDivElement> = new Map();
@@ -8,7 +8,7 @@ export function renderExtractorSettingsNew(state: AppState, parent: HTMLElement)
   const visibleIds = new Set<string>();
   for (const entry of state.gameData.extractionData.data) {
     const materialId = entry.material;
-    const material = state.gameData.materialData.data.find((mat) => mat.id === materialId);
+    const material = state.gameData.materials.find((mat) => mat.id === materialId);
     if (material === undefined) {
       continue;
     }
@@ -50,8 +50,8 @@ function updateContainer(
   if (label !== null && label.textContent !== material.name) {
     label.textContent = material.name;
   }
-  if (icon !== null && icon.src !== material.icon) {
-    icon.src = material.icon;
+  if (icon !== null && icon.src !== material.iconUrl) {
+    icon.src = material.iconUrl;
   }
   if (input !== null && document.activeElement !== input && input.value !== value) {
     input.value = value;
@@ -72,7 +72,7 @@ function createExtractorSettingsElement(
   const labelContainer = document.createElement('div');
 
   const icon = document.createElement('img');
-  icon.src = material.icon;
+  icon.src = material.iconUrl;
   icon.width = 16;
   icon.height = 16;
   labelContainer.appendChild(icon);

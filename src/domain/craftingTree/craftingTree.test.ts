@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { CraftingTree, RecipeChoices, RecipeNode, TreePath } from './craftingTree';
 import { buildTree, selectProducingRecipe } from './craftingTree';
-import type { Material, Recipe } from '../../api-access';
+import type { Recipe } from '../../api-access';
 import { createDummyMaterial, createDummyRecipe } from './treeTestUtils';
 
 describe('buildTree', () => {
   it('builds tree with one node when there are no recipes', () => {
-    const targetMaterial: Material = createDummyMaterial();
+    const targetMaterial = createDummyMaterial();
     const expected: CraftingTree = {
       root: {
         targetAmount: 1,
@@ -22,10 +22,10 @@ describe('buildTree', () => {
   });
   it('turns sourced input into sourced node', () => {
     // arrange
-    const targetMaterial: Material = createDummyMaterial({ id: 'targetMaterial' });
-    const intermediateMaterial: Material = createDummyMaterial({ id: 'intermediateMaterial' });
-    const rawMaterial1: Material = createDummyMaterial({ id: 'rawMaterial1' });
-    const rawMaterial2: Material = createDummyMaterial({ id: 'rawMaterial2' });
+    const targetMaterial = createDummyMaterial({ id: 'targetMaterial' });
+    const intermediateMaterial = createDummyMaterial({ id: 'intermediateMaterial' });
+    const rawMaterial1 = createDummyMaterial({ id: 'rawMaterial1' });
+    const rawMaterial2 = createDummyMaterial({ id: 'rawMaterial2' });
     const recipe1 = createDummyRecipe({
       output: { material: targetMaterial, qty: 1 },
       duration: 30,
@@ -64,10 +64,10 @@ describe('buildTree', () => {
   });
   it('overrides extraction with recipe when forced', () => {
     // arrange
-    const targetMaterial: Material = createDummyMaterial({ id: 'targetMaterial' });
-    const intermediateMaterial: Material = createDummyMaterial({ id: 'intermediateMaterial' });
-    const rawMaterial1: Material = createDummyMaterial({ id: 'rawMaterial1' });
-    const rawMaterial2: Material = createDummyMaterial({ id: 'rawMaterial2' });
+    const targetMaterial = createDummyMaterial({ id: 'targetMaterial' });
+    const intermediateMaterial = createDummyMaterial({ id: 'intermediateMaterial' });
+    const rawMaterial1 = createDummyMaterial({ id: 'rawMaterial1' });
+    const rawMaterial2 = createDummyMaterial({ id: 'rawMaterial2' });
     const recipe1 = createDummyRecipe({
       output: { material: targetMaterial, qty: 1 },
       duration: 30,

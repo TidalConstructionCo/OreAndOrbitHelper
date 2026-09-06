@@ -1,6 +1,7 @@
 // import type { Force } from 'd3';
-import type { Building, Material, Recipe } from '../../api-access';
+import type { Building, Recipe } from '../../api-access';
 import type { MaterialId } from '../../app/state';
+import type { Material } from '../gameData';
 
 type TreeNodeBase = {
   path: TreePath;
