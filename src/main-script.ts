@@ -63,7 +63,7 @@ function loadCachedGameData(state: AppState): AppState {
     ...state,
     gameData: {
       materials: materials,
-      recipeData: cachedRecipes !== undefined ? cachedRecipes.data : state.gameData.recipeData,
+      recipes: cachedRecipes !== undefined ? cachedRecipes.data : state.gameData.recipeData,
       extractionRecipes:
         cachedExtraction !== undefined
           ? cachedExtraction.data.data.flatMap((e) => {
