@@ -4,6 +4,1311 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Crafting Tree</title>
+
+    <style>
+      :root {
+        /* TODO: check if all of these are used */
+        /* font-family: system-ui, sans-serif; */
+        font-family: Inter, system-ui, sans-serif;
+        color-scheme: dark;
+        --bg: #080f1c;
+        --sidebar: #0b1422;
+        --panel: #101b2c;
+        --panel-raised: #142238;
+        --border: #24344a;
+
+        --text-primary: #d7e0ea;
+        --text-secondary: #7f91a8;
+        --text-muted: #52647a;
+
+        --cyan: #16d4e8;
+        --gold: #f3c84b;
+        --orange: #f5a623;
+        --green: #42d77d;
+        --purple: #a978ff;
+        --red: #f05d6c;
+      }
+
+      body {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 100vh;
+        margin: 0;
+        padding: 24px;
+        background: var(--bg);
+        color: var(--text-primary);
+        font-family: Inter, system-ui, sans-serif;
+      }
+
+      h1 {
+        margin-top: 0;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+
+      select {
+        padding: 6px 8px;
+        font: inherit;
+      }
+
+      #tree {
+        width: 100%;
+        height: calc(100vh - 260px);
+        min-height: 420px;
+        max-height: 900px;
+        border: 1px solid #8886;
+        border-radius: 8px;
+        overflow: auto;
+        background: color-mix(in srgb, Canvas 96%, currentColor 4%);
+      }
+
+      #tree-search {
+        width: 220px;
+        padding: 6px 8px;
+        font: inherit;
+      }
+
+      .node {
+        transition: opacity 0.2s ease;
+      }
+
+      .tree-node.search-match text {
+        font-weight: 700;
+      }
+
+      #tree svg {
+        display: block;
+        min-width: 100%;
+        min-height: 100%;
+        cursor: grab;
+      }
+
+      #tree svg:active {
+        cursor: grabbing;
+      }
+
+      .link {
+        fill: none;
+        stroke: #8888;
+        stroke-width: 2px;
+      }
+
+      .node rect {
+        stroke-width: 2px;
+      }
+
+      .node.crafted rect {
+        fill: #315d91;
+        stroke: #6ea8dc;
+      }
+
+      .node.raw rect {
+        fill: #285c38;
+        stroke: #7cc576;
+      }
+
+      .node.cycle rect {
+        fill: #713d3d;
+        stroke: #e57373;
+      }
+
+      .node text {
+        fill: white;
+        font-family: system-ui, sans-serif;
+        pointer-events: none;
+      }
+
+      .node .material {
+        font-weight: 700;
+        font-size: 14px;
+      }
+
+      .node .details {
+        font-size: 12px;
+        opacity: 0.9;
+      }
+
+      .node foreignObject {
+        overflow: visible;
+      }
+
+      .node select {
+        width: 180px;
+        margin-top: 5px;
+        padding: 2px 4px;
+        font:
+          12px system-ui,
+          sans-serif;
+      }
+
+      .recipe-choice {
+        font-family: system-ui, sans-serif;
+        font-size: 0.9em;
+        padding: 2px 5px;
+      }
+
+      .tree-node .recipe-line {
+        display: block;
+        overflow: hidden;
+
+        padding: 5px 7px;
+        border: 1px solid rgb(255 255 255 / 22%);
+        border-radius: 5px;
+
+        background: rgb(0 0 0 / 16%);
+        color: rgb(255 255 255 / 92%);
+
+        font-size: 11px;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+
+      .tree-node .recipe-choice-line {
+        display: block;
+        width: 100%;
+      }
+
+      .tree-node .recipe-select {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+
+        appearance: none;
+        -webkit-appearance: none;
+
+        padding: 6px 30px 6px 8px;
+        border: 1px solid #aebed0;
+        border-radius: 6px;
+
+        background-color: #f8fafc;
+        background-image:
+          linear-gradient(45deg, transparent 50%, #315f92 50%),
+          linear-gradient(135deg, #315f92 50%, transparent 50%);
+        background-position:
+          calc(100% - 14px) 50%,
+          calc(100% - 9px) 50%;
+        background-size:
+          5px 5px,
+          5px 5px;
+        background-repeat: no-repeat;
+
+        color: #18212f;
+        font:
+          12px system-ui,
+          sans-serif;
+        line-height: 1.25;
+        cursor: pointer;
+      }
+
+      .tree-node .recipe-select:hover {
+        background-color: white;
+        border-color: #dce8f4;
+      }
+
+      .tree-node .recipe-select:focus {
+        outline: 2px solid #ffd54f;
+        outline-offset: 1px;
+      }
+
+      /* Search state */
+      .tree-node.search-dim {
+        opacity: 0.25;
+      }
+
+      .tree-node.search-match rect {
+        stroke: #ffd54f;
+        stroke-width: 4px;
+        filter: drop-shadow(0 0 7px rgb(255 213 79 / 75%));
+      }
+
+      /* The HTML content should not be accidentally dimmed independently */
+      .tree-node.search-match .node-content,
+      .tree-node.search-dim .node-content {
+        opacity: 1;
+      }
+
+      .summary {
+        margin-top: 28px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 18px;
+      }
+
+      .panel {
+        border: 1px solid #8886;
+        border-radius: 8px;
+        padding: 14px;
+      }
+
+      .panel h2 {
+        font-size: 1.1rem;
+        margin-top: 0;
+      }
+
+      .panel ul {
+        margin: 0;
+        padding-left: 22px;
+      }
+
+      .muted {
+        opacity: 0.7;
+      }
+
+      .extractor-settings {
+        border: 1px solid #999;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+
+      .extractor-settings h2 {
+        grid-column: 1 / -1;
+        margin: 0;
+      }
+
+      .extractor-setting {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          'label output'
+          'slider slider';
+        gap: 0.35rem 0.75rem;
+        padding: 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
+
+      .extractor-setting label {
+        grid-area: label;
+      }
+
+      .extractor-setting input[type='range'] {
+        grid-area: slider;
+        width: 100%;
+      }
+
+      .extractor-setting output {
+        grid-area: output;
+        min-width: 2ch;
+        text-align: right;
+        font-weight: bold;
+      }
+
+      .tool-button {
+        display: block;
+        width: 100%;
+        margin: 8px 0;
+        padding: 12px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: white;
+        cursor: pointer;
+        text-align: left;
+        font: inherit;
+      }
+
+      /* .tool-button:hover,
+      .tool-button.active {
+        background: #3b82f6;
+      } */
+
+      .tool-button:hover,
+      .tool-button.active {
+        background: var(--panel-raised);
+        border-color: var(--border);
+        color: var(--cyan);
+      }
+
+      .tool-panel {
+        display: none;
+      }
+
+      .tool-panel.active {
+        display: block;
+      }
+
+      #storedKey {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      #keyValue {
+        font-family: monospace;
+      }
+
+      .reload-game-data:hover {
+        background: #3b82f6;
+      }
+
+      .reload-game-data:disabled {
+        opacity: 0.6;
+        cursor: wait;
+      }
+
+      @media (max-width: 600px) {
+        .reload-game-data {
+          width: auto;
+          margin-top: 16px;
+          text-align: center;
+        }
+
+        .tool-button {
+          display: inline-block;
+          width: auto;
+          margin-right: 6px;
+        }
+
+        .reload-game-data {
+          width: 100%;
+          margin-top: auto;
+          text-align: center;
+        }
+      }
+
+      #reload-game-data {
+        display: block;
+        width: 100%;
+        margin-top: auto;
+        padding: 12px;
+        border: 0;
+        border-radius: 6px;
+        background: #2563eb;
+        color: white;
+        cursor: pointer;
+        text-align: left;
+        font: inherit;
+      }
+
+      .tool-unavailable {
+        padding: 2rem;
+        max-width: 40rem;
+      }
+
+      .tool-unavailable h1 {
+        margin-top: 0;
+      }
+
+      .tool-content[hidden] {
+        display: none;
+      }
+
+      .tree-node rect {
+        stroke-width: 2px;
+        vector-effect: non-scaling-stroke;
+        transition:
+          filter 0.2s ease,
+          stroke-width 0.2s ease;
+      }
+
+      .recipe-node {
+        fill: #315f92;
+        stroke: #6fabe0;
+      }
+
+      .raw-material-node {
+        fill: #28643d;
+        stroke: #82ce91;
+      }
+
+      .sourced-material-node {
+        fill: #532864;
+        stroke: #82ce91;
+      }
+
+      .tree-node:hover rect {
+        filter: drop-shadow(0 4px 8px rgb(0 0 0 / 25%));
+      }
+
+      .tree-node .node-content {
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+
+        color: white;
+        font-family: system-ui, sans-serif;
+        font-size: 12px;
+        line-height: 1.25;
+      }
+
+      .tree-node .node-line {
+        color: white;
+        font-family: system-ui, sans-serif;
+      }
+
+      .tree-node .material {
+        color: white;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
+      .tree-node .details {
+        color: rgb(255 255 255 / 78%);
+        font-size: 11px;
+      }
+
+      .tree-node select {
+        width: 220px;
+        box-sizing: border-box;
+        margin-top: 5px;
+        padding: 2px 4px;
+        font:
+          12px system-ui,
+          sans-serif;
+      }
+      .sourced-material-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .material-icon {
+        /* width: 32px;
+        height: 32px; */
+        object-fit: contain;
+      }
+
+      .node-content {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        box-sizing: border-box;
+      }
+
+      .node-actions {
+        display: flex;
+        justify-content: flex-start;
+        margin-top: 4px;
+      }
+
+      .force-recipe-button {
+        padding: 2px 6px;
+        font-size: 11px;
+        cursor: pointer;
+      }
+
+      .recipe-metrics {
+        display: grid;
+        grid-template-columns: 24px minmax(0, 1fr);
+        column-gap: 6px;
+        align-items: center;
+      }
+
+      .building-icon {
+        grid-row: 1 / span 2;
+        width: 22px;
+        height: 36px;
+        object-fit: contain;
+        align-self: center;
+      }
+
+      .recipe-metric-lines {
+        min-width: 0;
+      }
+
+      /* Prevent child elements from creating horizontal page overflow */
+      html,
+      body {
+        overflow-x: hidden;
+      }
+
+      /* Desktop layout */
+      .app-layout {
+        display: flex;
+        min-height: 100vh;
+        align-items: stretch;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+
+        display: flex;
+        flex-direction: column;
+
+        flex: 0 0 220px;
+        width: 220px;
+        height: 100vh;
+        box-sizing: border-box;
+        padding: 20px;
+
+        /* background: #1d2430; */
+        color: white;
+        background: var(--sidebar);
+        border-right: 1px solid var(--border);
+      }
+
+      .content {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 24px;
+      }
+
+      /* Hidden on desktop */
+      .menu-toggle,
+      .close-sidebar,
+      .sidebar-backdrop {
+        display: none;
+      }
+
+      /* Mobile layout */
+      @media (max-width: 600px) {
+        body {
+          padding: 0;
+        }
+
+        .content {
+          width: 100%;
+          padding: 56px 12px 12px;
+        }
+
+        .sidebar {
+          position: fixed;
+          z-index: 1000;
+          inset: 0 auto 0 0;
+
+          width: min(82vw, 280px);
+          height: 100vh;
+          min-height: 100vh;
+          padding: 16px;
+
+          transform: translateX(-100%);
+          transition: transform 0.25s ease;
+          box-shadow: 4px 0 18px rgb(0 0 0 / 30%);
+        }
+
+        .sidebar.is-open {
+          transform: translateX(0);
+        }
+
+        .menu-toggle {
+          display: block;
+          position: fixed;
+          z-index: 900;
+          top: 12px;
+          left: 12px;
+
+          padding: 8px 11px;
+          border: 0;
+          border-radius: 6px;
+          background: #2563eb;
+          color: white;
+          font: inherit;
+          font-size: 1.2rem;
+          cursor: pointer;
+        }
+
+        .close-sidebar {
+          display: block;
+          align-self: flex-end;
+
+          padding: 0 4px;
+          border: 0;
+          background: transparent;
+          color: white;
+          font-size: 1.8rem;
+          line-height: 1;
+          cursor: pointer;
+        }
+
+        .sidebar-backdrop {
+          display: block;
+          position: fixed;
+          z-index: 999;
+          inset: 0;
+
+          background: rgb(0 0 0 / 45%);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.25s ease;
+        }
+
+        .sidebar-backdrop.is-visible {
+          opacity: 1;
+          pointer-events: auto;
+        }
+
+        .tool-button {
+          display: block;
+          width: 100%;
+          margin: 8px 0;
+        }
+
+        #reload-game-data {
+          width: 100%;
+          margin-top: auto;
+        }
+
+        #tree {
+          height: calc(100vh - 230px);
+          min-height: 320px;
+        }
+
+        #tree-search {
+          width: 100%;
+        }
+      }
+
+      /* Accessible text that is visually hidden */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      /* Unified dark Ore-style theme */
+      :root {
+        color-scheme: dark;
+
+        --bg: #080f1c;
+        --sidebar: #0b1422;
+        --panel: #101b2c;
+        --panel-raised: #142238;
+        --border: #24344a;
+
+        --text-primary: #d7e0ea;
+        --text-secondary: #7f91a8;
+        --text-muted: #52647a;
+
+        --cyan: #16d4e8;
+        --gold: #f3c84b;
+        --orange: #f5a623;
+        --green: #42d77d;
+        --purple: #a978ff;
+        --red: #f05d6c;
+
+        --node-crafted: #183b58;
+        --node-crafted-border: #4ca6c7;
+        --node-raw: #163b2b;
+        --node-raw-border: #42d77d;
+        --node-cycle: #482633;
+        --node-cycle-border: #f05d6c;
+      }
+
+      /* Base layout */
+      html,
+      body {
+        background: var(--bg);
+        color: var(--text-primary);
+      }
+
+      body {
+        font-family: Inter, system-ui, sans-serif;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      label {
+        color: var(--text-primary);
+      }
+
+      .muted {
+        color: var(--text-secondary);
+        opacity: 1;
+      }
+
+      /* Form controls */
+      select,
+      input,
+      button,
+      textarea {
+        font-family: Inter, system-ui, sans-serif;
+      }
+
+      select,
+      input,
+      textarea,
+      #tree-search {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--panel);
+        color: var(--text-primary);
+      }
+
+      select:focus,
+      input:focus,
+      textarea:focus,
+      #tree-search:focus {
+        outline: 2px solid var(--cyan);
+        outline-offset: 1px;
+      }
+
+      option {
+        background: var(--panel);
+        color: var(--text-primary);
+      }
+
+      /* Main tree area */
+      #tree {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        box-shadow: inset 0 0 0 1px rgb(255 255 255 / 2%);
+      }
+
+      .link {
+        stroke: #52647a;
+        stroke-opacity: 0.65;
+        stroke-width: 2px;
+      }
+
+      /* Tree nodes */
+      .node rect,
+      .tree-node rect {
+        stroke-width: 2px;
+      }
+
+      .node.crafted rect,
+      .recipe-node {
+        fill: var(--node-crafted);
+        stroke: var(--node-crafted-border);
+      }
+
+      .node.raw rect,
+      .raw-material-node {
+        fill: var(--node-raw);
+        stroke: var(--node-raw-border);
+      }
+
+      .node.cycle rect {
+        fill: var(--node-cycle);
+        stroke: var(--node-cycle-border);
+      }
+
+      .sourced-material-node {
+        fill: #2d2145;
+        stroke: var(--purple);
+      }
+
+      .node text,
+      .tree-node .node-line,
+      .tree-node .material {
+        fill: var(--text-primary);
+        color: var(--text-primary);
+      }
+
+      .tree-node .details {
+        color: var(--text-secondary);
+      }
+
+      .tree-node .recipe-line {
+        border-color: rgb(127 145 168 / 32%);
+        background: rgb(8 15 28 / 55%);
+        color: var(--text-primary);
+      }
+
+      /* Recipe dropdowns */
+      .tree-node .recipe-select {
+        border-color: var(--border);
+        background-color: var(--panel-raised);
+        background-image:
+          linear-gradient(45deg, transparent 50%, var(--cyan) 50%),
+          linear-gradient(135deg, var(--cyan) 50%, transparent 50%);
+        color: var(--text-primary);
+      }
+
+      .tree-node .recipe-select:hover {
+        background-color: #1a2b43;
+        border-color: var(--cyan);
+      }
+
+      .tree-node .recipe-select:focus {
+        outline-color: var(--gold);
+      }
+
+      /* Search states */
+      .tree-node.search-dim {
+        opacity: 0.22;
+      }
+
+      .tree-node.search-match rect {
+        stroke: var(--gold);
+        stroke-width: 4px;
+        filter: drop-shadow(0 0 7px rgb(243 200 75 / 70%));
+      }
+
+      /* Panels and settings */
+      .panel,
+      .extractor-settings {
+        border-color: var(--border);
+        background: var(--panel);
+      }
+
+      .extractor-setting {
+        border-color: var(--border);
+        background: var(--panel-raised);
+      }
+
+      .extractor-setting output {
+        color: var(--cyan);
+      }
+
+      /* Sidebar */
+      .sidebar {
+        background: var(--sidebar);
+        border-right-color: var(--border);
+        color: var(--text-primary);
+      }
+
+      .tool-button {
+        color: var(--text-secondary);
+      }
+
+      .tool-button:hover,
+      .tool-button.active {
+        background: var(--panel-raised);
+        color: var(--cyan);
+      }
+
+      .close-sidebar {
+        color: var(--text-secondary);
+      }
+
+      .close-sidebar:hover {
+        color: var(--cyan);
+      }
+
+      /* Buttons */
+      #reload-game-data,
+      .reload-game-data {
+        border: 1px solid var(--orange);
+        background: var(--orange);
+        color: #10131a;
+        font-weight: 600;
+      }
+
+      #reload-game-data:hover,
+      .reload-game-data:hover {
+        background: #ffc04a;
+        border-color: #ffc04a;
+      }
+
+      #reload-game-data:disabled,
+      .reload-game-data:disabled {
+        background: var(--orange);
+        color: #10131a;
+        opacity: 0.55;
+      }
+
+      /* Mobile menu button */
+      .menu-toggle {
+        background: var(--panel-raised);
+        border: 1px solid var(--cyan);
+        color: var(--cyan);
+      }
+
+      .menu-toggle:hover {
+        background: #1a3549;
+      }
+
+      .sidebar-backdrop {
+        background: rgb(3 7 14 / 72%);
+      }
+
+      /* Links and interactive elements */
+      a {
+        color: var(--cyan);
+      }
+
+      a:hover {
+        color: #8aeff7;
+      }
+
+      button {
+        transition:
+          background-color 0.15s ease,
+          border-color 0.15s ease,
+          color 0.15s ease,
+          filter 0.15s ease;
+      }
+
+      button:focus-visible {
+        outline: 2px solid var(--cyan);
+        outline-offset: 2px;
+      }
+
+      /* Status colors */
+      .success,
+      .status-success {
+        color: var(--green);
+      }
+
+      .warning,
+      .status-warning {
+        color: var(--gold);
+      }
+
+      .error,
+      .status-error {
+        color: var(--red);
+      }
+
+      .accent {
+        color: var(--cyan);
+      }
+
+      /* Scrollbars */
+      * {
+        scrollbar-color: var(--border) var(--bg);
+        scrollbar-width: thin;
+      }
+
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--bg);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        border: 2px solid var(--bg);
+        border-radius: 999px;
+        background: var(--border);
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted);
+      }
+      /* Unified button styling */
+      button,
+      input[type='button'],
+      input[type='submit'],
+      input[type='reset'] {
+        box-sizing: border-box;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 7px 12px;
+
+        background: var(--panel-raised);
+        color: var(--text-primary);
+
+        font: inherit;
+        cursor: pointer;
+        transition:
+          background-color 0.15s ease,
+          border-color 0.15s ease,
+          color 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+
+      button:hover,
+      input[type='button']:hover,
+      input[type='submit']:hover,
+      input[type='reset']:hover {
+        border-color: var(--cyan);
+        background: #1b3148;
+        color: var(--cyan);
+      }
+
+      button:active,
+      input[type='button']:active,
+      input[type='submit']:active,
+      input[type='reset']:active {
+        background: #24425a;
+      }
+
+      button:focus-visible,
+      input[type='button']:focus-visible,
+      input[type='submit']:focus-visible,
+      input[type='reset']:focus-visible {
+        outline: 2px solid var(--cyan);
+        outline-offset: 2px;
+      }
+
+      button:disabled,
+      input[type='button']:disabled,
+      input[type='submit']:disabled,
+      input[type='reset']:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
+      /* Sidebar buttons */
+      .tool-button {
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--text-secondary);
+        text-align: left;
+      }
+
+      .tool-button:hover,
+      .tool-button.active {
+        border-color: var(--border);
+        background: var(--panel-raised);
+        color: var(--cyan);
+      }
+
+      /* Recipe/action buttons inside tree nodes */
+      .force-recipe-button {
+        border: 1px solid var(--cyan);
+        border-radius: 5px;
+        padding: 3px 8px;
+
+        background: rgb(22 212 232 / 12%);
+        color: var(--cyan);
+
+        font-size: 11px;
+      }
+
+      .force-recipe-button:hover {
+        background: rgb(22 212 232 / 24%);
+        color: #8aeff7;
+      }
+
+      /* Main reload button */
+      #reload-game-data,
+      .reload-game-data {
+        border: 1px solid var(--orange);
+        border-radius: 6px;
+        background: var(--orange);
+        color: #10131a;
+        font-weight: 600;
+      }
+
+      #reload-game-data:hover,
+      .reload-game-data:hover {
+        border-color: #ffd166;
+        background: #ffd166;
+        color: #10131a;
+      }
+
+      #reload-game-data:disabled,
+      .reload-game-data:disabled {
+        background: var(--orange);
+        color: #10131a;
+        opacity: 0.5;
+      }
+
+      /* Mobile menu button */
+      .menu-toggle {
+        border: 1px solid var(--cyan);
+        background: var(--panel-raised);
+        color: var(--cyan);
+      }
+
+      .menu-toggle:hover {
+        border-color: #8aeff7;
+        background: #1b3148;
+        color: #8aeff7;
+      }
+
+      /* Close sidebar button */
+      .close-sidebar {
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--text-secondary);
+      }
+
+      .close-sidebar:hover {
+        border-color: var(--border);
+        background: var(--panel-raised);
+        color: var(--cyan);
+      }
+
+      /* Buttons placed inside panels */
+      .panel button,
+      .extractor-settings button,
+      .tool-panel button {
+        background: var(--panel-raised);
+        color: var(--text-primary);
+      }
+
+      /* Full-width action buttons */
+      button.full-width,
+      .panel button.full-width {
+        width: 100%;
+      }
+
+      /* Global yellow-and-black button theme */
+      button,
+      input[type='button'],
+      input[type='submit'],
+      input[type='reset'],
+      .tool-button,
+      .force-recipe-button,
+      #reload-game-data,
+      .reload-game-data,
+      .menu-toggle,
+      .close-sidebar {
+        box-sizing: border-box;
+
+        border: 1px solid #d6a928;
+        border-radius: 6px;
+        background: var(--gold);
+        color: #10131a;
+
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+
+        transition:
+          background-color 0.15s ease,
+          border-color 0.15s ease,
+          box-shadow 0.15s ease,
+          transform 0.1s ease;
+      }
+
+      button:hover,
+      input[type='button']:hover,
+      input[type='submit']:hover,
+      input[type='reset']:hover,
+      .tool-button:hover,
+      .tool-button.active,
+      .force-recipe-button:hover,
+      #reload-game-data:hover,
+      .reload-game-data:hover,
+      .menu-toggle:hover,
+      .close-sidebar:hover {
+        border-color: #ffe083;
+        background: #ffd75a;
+        color: #10131a;
+        box-shadow: 0 0 0 2px rgb(243 200 75 / 18%);
+      }
+
+      button:active,
+      input[type='button']:active,
+      input[type='submit']:active,
+      input[type='reset']:active,
+      .tool-button:active,
+      .force-recipe-button:active,
+      #reload-game-data:active,
+      .reload-game-data:active,
+      .menu-toggle:active {
+        background: #d6a928;
+        transform: translateY(1px);
+      }
+
+      button:focus-visible,
+      input[type='button']:focus-visible,
+      input[type='submit']:focus-visible,
+      input[type='reset']:focus-visible,
+      .tool-button:focus-visible,
+      .force-recipe-button:focus-visible,
+      #reload-game-data:focus-visible,
+      .reload-game-data:focus-visible,
+      .menu-toggle:focus-visible,
+      .close-sidebar:focus-visible {
+        outline: 2px solid var(--gold);
+        outline-offset: 2px;
+      }
+
+      button:disabled,
+      input[type='button']:disabled,
+      input[type='submit']:disabled,
+      input[type='reset']:disabled,
+      .tool-button:disabled,
+      .force-recipe-button:disabled,
+      #reload-game-data:disabled,
+      .reload-game-data:disabled {
+        background: #806c32;
+        border-color: #806c32;
+        color: #292817;
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      /* Standard button sizing */
+      button,
+      input[type='button'],
+      input[type='submit'],
+      input[type='reset'] {
+        padding: 7px 12px;
+      }
+
+      /* Sidebar buttons should keep their full-width layout */
+      .tool-button {
+        width: 100%;
+        margin: 8px 0;
+        padding: 10px 12px;
+        text-align: left;
+      }
+
+      /* Small tree-node action buttons */
+      .force-recipe-button {
+        padding: 3px 8px;
+        font-size: 11px;
+      }
+
+      /* Reload action */
+      #reload-game-data,
+      .reload-game-data {
+        color: #10131a;
+      }
+
+      /* Mobile menu button */
+      .menu-toggle {
+        color: #10131a;
+      }
+
+      /* Close button can remain compact */
+      .close-sidebar {
+        padding: 2px 7px;
+        font-size: 1.8rem;
+      }
+
+      /* Sidebar buttons remain dark */
+      .sidebar .tool-button {
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--text-secondary);
+        font-weight: 400;
+      }
+
+      .sidebar .tool-button:hover,
+      .sidebar .tool-button.active {
+        border-color: var(--border);
+        background: var(--panel-raised);
+        color: var(--cyan);
+        box-shadow: none;
+      }
+
+      .sidebar .tool-button:active {
+        background: #1b3148;
+        color: var(--cyan);
+        transform: none;
+      }
+
+      /* Sidebar close button remains dark */
+      .sidebar .close-sidebar {
+        border-color: transparent;
+        background: transparent;
+        color: var(--text-secondary);
+        box-shadow: none;
+      }
+
+      .sidebar .close-sidebar:hover {
+        border-color: var(--border);
+        background: var(--panel-raised);
+        color: var(--cyan);
+      }
+    </style>
   </head>
 
   <body>
