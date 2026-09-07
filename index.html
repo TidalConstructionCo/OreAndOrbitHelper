@@ -8,7 +8,6 @@
     <style>
       :root {
         /* TODO: check if all of these are used */
-        /* font-family: system-ui, sans-serif; */
         font-family: Inter, system-ui, sans-serif;
         color-scheme: dark;
         --bg: #080f1c;
@@ -74,14 +73,6 @@
         font: inherit;
       }
 
-      .node {
-        transition: opacity 0.2s ease;
-      }
-
-      .tree-node.search-match text {
-        font-weight: 700;
-      }
-
       #tree svg {
         display: block;
         min-width: 100%;
@@ -97,60 +88,6 @@
         fill: none;
         stroke: #8888;
         stroke-width: 2px;
-      }
-
-      .node rect {
-        stroke-width: 2px;
-      }
-
-      .node.crafted rect {
-        fill: #315d91;
-        stroke: #6ea8dc;
-      }
-
-      .node.raw rect {
-        fill: #285c38;
-        stroke: #7cc576;
-      }
-
-      .node.cycle rect {
-        fill: #713d3d;
-        stroke: #e57373;
-      }
-
-      .node text {
-        fill: white;
-        font-family: system-ui, sans-serif;
-        pointer-events: none;
-      }
-
-      .node .material {
-        font-weight: 700;
-        font-size: 14px;
-      }
-
-      .node .details {
-        font-size: 12px;
-        opacity: 0.9;
-      }
-
-      .node foreignObject {
-        overflow: visible;
-      }
-
-      .node select {
-        width: 180px;
-        margin-top: 5px;
-        padding: 2px 4px;
-        font:
-          12px system-ui,
-          sans-serif;
-      }
-
-      .recipe-choice {
-        font-family: system-ui, sans-serif;
-        font-size: 0.9em;
-        padding: 2px 5px;
       }
 
       .tree-node .recipe-line {
@@ -217,7 +154,6 @@
         outline-offset: 1px;
       }
 
-      /* Search state */
       .tree-node.search-dim {
         opacity: 0.25;
       }
@@ -228,7 +164,6 @@
         filter: drop-shadow(0 0 7px rgb(255 213 79 / 75%));
       }
 
-      /* The HTML content should not be accidentally dimmed independently */
       .tree-node.search-match .node-content,
       .tree-node.search-dim .node-content {
         opacity: 1;
@@ -318,11 +253,6 @@
         text-align: left;
         font: inherit;
       }
-
-      /* .tool-button:hover,
-      .tool-button.active {
-        background: #3b82f6;
-      } */
 
       .tool-button:hover,
       .tool-button.active {
@@ -481,8 +411,6 @@
       }
 
       .material-icon {
-        /* width: 32px;
-        height: 32px; */
         object-fit: contain;
       }
 
@@ -530,7 +458,6 @@
         overflow-x: hidden;
       }
 
-      /* Desktop layout */
       .app-layout {
         display: flex;
         min-height: 100vh;
@@ -550,7 +477,6 @@
         box-sizing: border-box;
         padding: 20px;
 
-        /* background: #1d2430; */
         color: white;
         background: var(--sidebar);
         border-right: 1px solid var(--border);
@@ -562,14 +488,12 @@
         padding: 24px;
       }
 
-      /* Hidden on desktop */
       .menu-toggle,
       .close-sidebar,
       .sidebar-backdrop {
         display: none;
       }
 
-      /* Mobile layout */
       @media (max-width: 600px) {
         body {
           padding: 0;
@@ -680,7 +604,6 @@
         border: 0;
       }
 
-      /* Unified dark Ore-style theme */
       :root {
         color-scheme: dark;
 
@@ -709,7 +632,6 @@
         --node-cycle-border: #f05d6c;
       }
 
-      /* Base layout */
       html,
       body {
         background: var(--bg);
@@ -733,7 +655,6 @@
         opacity: 1;
       }
 
-      /* Form controls */
       select,
       input,
       button,
@@ -764,7 +685,6 @@
         color: var(--text-primary);
       }
 
-      /* Main tree area */
       #tree {
         border: 1px solid var(--border);
         background: var(--panel);
@@ -777,7 +697,6 @@
         stroke-width: 2px;
       }
 
-      /* Tree nodes */
       .node rect,
       .tree-node rect {
         stroke-width: 2px;
@@ -822,7 +741,6 @@
         color: var(--text-primary);
       }
 
-      /* Recipe dropdowns */
       .tree-node .recipe-select {
         border-color: var(--border);
         background-color: var(--panel-raised);
@@ -841,7 +759,6 @@
         outline-color: var(--gold);
       }
 
-      /* Search states */
       .tree-node.search-dim {
         opacity: 0.22;
       }
@@ -852,7 +769,6 @@
         filter: drop-shadow(0 0 7px rgb(243 200 75 / 70%));
       }
 
-      /* Panels and settings */
       .panel,
       .extractor-settings {
         border-color: var(--border);
@@ -868,7 +784,6 @@
         color: var(--cyan);
       }
 
-      /* Sidebar */
       .sidebar {
         background: var(--sidebar);
         border-right-color: var(--border);
@@ -893,7 +808,6 @@
         color: var(--cyan);
       }
 
-      /* Buttons */
       #reload-game-data,
       .reload-game-data {
         border: 1px solid var(--orange);
@@ -915,7 +829,6 @@
         opacity: 0.55;
       }
 
-      /* Mobile menu button */
       .menu-toggle {
         background: var(--panel-raised);
         border: 1px solid var(--cyan);
@@ -928,15 +841,6 @@
 
       .sidebar-backdrop {
         background: rgb(3 7 14 / 72%);
-      }
-
-      /* Links and interactive elements */
-      a {
-        color: var(--cyan);
-      }
-
-      a:hover {
-        color: #8aeff7;
       }
 
       button {
@@ -952,7 +856,6 @@
         outline-offset: 2px;
       }
 
-      /* Status colors */
       .success,
       .status-success {
         color: var(--green);
@@ -972,7 +875,6 @@
         color: var(--cyan);
       }
 
-      /* Scrollbars */
       * {
         scrollbar-color: var(--border) var(--bg);
         scrollbar-width: thin;
@@ -996,7 +898,7 @@
       ::-webkit-scrollbar-thumb:hover {
         background: var(--text-muted);
       }
-      /* Unified button styling */
+
       button,
       input[type='button'],
       input[type='submit'],
@@ -1034,14 +936,6 @@
         background: #24425a;
       }
 
-      button:focus-visible,
-      input[type='button']:focus-visible,
-      input[type='submit']:focus-visible,
-      input[type='reset']:focus-visible {
-        outline: 2px solid var(--cyan);
-        outline-offset: 2px;
-      }
-
       button:disabled,
       input[type='button']:disabled,
       input[type='submit']:disabled,
@@ -1050,7 +944,6 @@
         opacity: 0.5;
       }
 
-      /* Sidebar buttons */
       .tool-button {
         border: 1px solid transparent;
         background: transparent;
@@ -1065,7 +958,6 @@
         color: var(--cyan);
       }
 
-      /* Recipe/action buttons inside tree nodes */
       .force-recipe-button {
         border: 1px solid var(--cyan);
         border-radius: 5px;
@@ -1082,7 +974,6 @@
         color: #8aeff7;
       }
 
-      /* Main reload button */
       #reload-game-data,
       .reload-game-data {
         border: 1px solid var(--orange);
@@ -1106,7 +997,6 @@
         opacity: 0.5;
       }
 
-      /* Mobile menu button */
       .menu-toggle {
         border: 1px solid var(--cyan);
         background: var(--panel-raised);
@@ -1119,7 +1009,6 @@
         color: #8aeff7;
       }
 
-      /* Close sidebar button */
       .close-sidebar {
         border: 1px solid transparent;
         background: transparent;
@@ -1132,7 +1021,6 @@
         color: var(--cyan);
       }
 
-      /* Buttons placed inside panels */
       .panel button,
       .extractor-settings button,
       .tool-panel button {
@@ -1140,13 +1028,11 @@
         color: var(--text-primary);
       }
 
-      /* Full-width action buttons */
       button.full-width,
       .panel button.full-width {
         width: 100%;
       }
 
-      /* Global yellow-and-black button theme */
       button,
       input[type='button'],
       input[type='submit'],
@@ -1215,18 +1101,13 @@
       .reload-game-data:focus-visible,
       .menu-toggle:focus-visible,
       .close-sidebar:focus-visible {
-        outline: 2px solid var(--gold);
+        outline: 2px solid var(--cyan);
         outline-offset: 2px;
       }
 
       button:disabled,
-      input[type='button']:disabled,
-      input[type='submit']:disabled,
-      input[type='reset']:disabled,
       .tool-button:disabled,
-      .force-recipe-button:disabled,
-      #reload-game-data:disabled,
-      .reload-game-data:disabled {
+      #reload-game-data:disabled {
         background: #806c32;
         border-color: #806c32;
         color: #292817;
@@ -1234,15 +1115,10 @@
         opacity: 0.55;
       }
 
-      /* Standard button sizing */
-      button,
-      input[type='button'],
-      input[type='submit'],
-      input[type='reset'] {
+      button {
         padding: 7px 12px;
       }
 
-      /* Sidebar buttons should keep their full-width layout */
       .tool-button {
         width: 100%;
         margin: 8px 0;
@@ -1250,30 +1126,25 @@
         text-align: left;
       }
 
-      /* Small tree-node action buttons */
       .force-recipe-button {
         padding: 3px 8px;
         font-size: 11px;
       }
 
-      /* Reload action */
       #reload-game-data,
       .reload-game-data {
         color: #10131a;
       }
 
-      /* Mobile menu button */
       .menu-toggle {
         color: #10131a;
       }
 
-      /* Close button can remain compact */
       .close-sidebar {
         padding: 2px 7px;
         font-size: 1.8rem;
       }
 
-      /* Sidebar buttons remain dark */
       .sidebar .tool-button {
         border: 1px solid transparent;
         background: transparent;
@@ -1295,7 +1166,6 @@
         transform: none;
       }
 
-      /* Sidebar close button remains dark */
       .sidebar .close-sidebar {
         border-color: transparent;
         background: transparent;
