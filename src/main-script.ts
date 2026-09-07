@@ -16,7 +16,6 @@
  */
 import { API_KEY_STORAGE_KEY, getApiKey, initializeApiPageNew } from './api-key.js';
 import { renderSummary } from './ui/summary';
-import type { Recipe } from './api-access';
 import {
   BuildingsResponseSchema,
   ExtractionResponseSchema,
@@ -39,7 +38,13 @@ import {
   getSummedSourcedItems,
   getSummedUtilization,
 } from './domain/craftingTree/treeAnalysis.js';
-import { convertBuilding, convertMaterial, tryConvertExtractionRecipe } from './domain/gameData.js';
+import {
+  convertBuilding,
+  convertMaterial,
+  tryConvertExtractionRecipe,
+  tryConvertRecipe,
+  type Recipe,
+} from './domain/gameData.js';
 
 let GLOBAL_STATE = createInitialState();
 const buttons = document.querySelectorAll<HTMLElement>('.tool-button');
@@ -59,11 +64,21 @@ function loadCachedGameData(state: AppState): AppState {
     cachedMaterials !== undefined
       ? cachedMaterials.data.data.map((m) => convertMaterial(m))
       : state.gameData.materials;
+  const buildings =
+    cachedBuildings !== undefined
+      ? cachedBuildings.data.data.map((b) => convertBuilding(b))
+      : state.gameData.buildings;
   return {
     ...state,
     gameData: {
       materials: materials,
-      recipes: cachedRecipes !== undefined ? cachedRecipes.data : state.gameData.recipeData,
+      recipes:
+        cachedRecipes !== undefined
+          ? cachedRecipes.data.data.flatMap((r) => {
+              const recipes = tryConvertRecipe(r, materials, buildings);
+              return recipes === undefined ? [] : [recipes];
+            })
+          : state.gameData.recipes,
       extractionRecipes:
         cachedExtraction !== undefined
           ? cachedExtraction.data.data.flatMap((e) => {
@@ -71,10 +86,7 @@ function loadCachedGameData(state: AppState): AppState {
               return data === undefined ? [] : [data];
             })
           : state.gameData.extractionRecipes,
-      buildings:
-        cachedBuildings !== undefined
-          ? cachedBuildings.data.data.map((b) => convertBuilding(b))
-          : state.gameData.buildings,
+      buildings: buildings,
     },
   };
 }
@@ -101,9 +113,19 @@ async function updateGameData(state: AppState): Promise<AppState> {
     saveToCache(CACHE_KEYS.materials, materialApiResult);
   }
 
+  const buildingApiResult = await getBuildingData();
+  if (buildingApiResult !== undefined) {
+    result.gameData.buildings = buildingApiResult.data.map(convertBuilding);
+    saveToCache(CACHE_KEYS.buildings, buildingApiResult);
+  }
+
   const recipeApiResult = await getRecipes();
   if (recipeApiResult !== undefined) {
-    result.gameData.recipeData = recipeApiResult;
+    const recipes = recipeApiResult.data.flatMap((r) => {
+      const recipe = tryConvertRecipe(r, result.gameData.materials, result.gameData.buildings);
+      return recipe === undefined ? [] : [recipe];
+    });
+    result.gameData.recipes = recipes;
     saveToCache(CACHE_KEYS.recipes, recipeApiResult);
   }
 
@@ -114,12 +136,6 @@ async function updateGameData(state: AppState): Promise<AppState> {
       return data === undefined ? [] : [data];
     });
     saveToCache(CACHE_KEYS.locations, extractionApiResult);
-  }
-
-  const buildingApiResult = await getBuildingData();
-  if (buildingApiResult !== undefined) {
-    result.gameData.buildings = buildingApiResult.data.map(convertBuilding);
-    saveToCache(CACHE_KEYS.buildings, buildingApiResult);
   }
 
   return result;
@@ -375,7 +391,7 @@ function isGameDataReady(gameData: GameData): boolean {
   // TODO: get a better way to determine
   return (
     gameData.materials.length > 0 &&
-    gameData.recipeData.data.length > 0 &&
+    gameData.recipes.length > 0 &&
     gameData.extractionRecipes.length > 0 &&
     gameData.buildings.length > 0
   );
@@ -478,7 +494,7 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
   const tree = buildTree(
     state.craftingTree.targetMaterial,
     state.gameData.materials,
-    state.gameData.recipeData.data,
+    state.gameData.recipes,
     state.gameData.extractionRecipes.map((e) => e.material),
     state.craftingTree.recipeChoices,
     state.craftingTree.sourcedMaterials,
@@ -520,8 +536,6 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
         state.gameData.extractionRecipes,
         state.craftingTree.extractionYields,
       ),
-      state.gameData.buildings,
-      state.gameData.materials,
     );
   }
 }

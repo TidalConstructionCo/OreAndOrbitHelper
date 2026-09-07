@@ -1,5 +1,4 @@
-import type { Recipe } from '../../api-access';
-import type { Material } from '../gameData';
+import type { Building, Material, Recipe } from '../gameData';
 
 export function createDummyMaterial(options?: { id: string | undefined }): Material {
   return {
@@ -11,27 +10,29 @@ export function createDummyMaterial(options?: { id: string | undefined }): Mater
   };
 }
 
+function createDummyBuilding(): Building {
+  return {
+    iconUrl: '',
+    id: 'BuildingID',
+    name: 'MyBuilding',
+    powerDrawMw: 0,
+  };
+}
+
 export function createDummyRecipe(options: {
-  inputs?: { material: Material; qty: number }[];
-  output: { material: Material; qty: number };
+  inputs?: { material: Material; amount: number }[];
+  output: { material: Material; amount: number };
   duration?: number;
 }): Recipe {
   return {
-    alt_of: null,
-    batch_minutes: options.duration ?? 0,
-    building: '',
-    byproduct: null,
-    era: '',
+    duration: options.duration ?? 0,
+    building: createDummyBuilding(),
+    byproduct: undefined,
     id: 'RecipeId',
     inputs:
       options.inputs?.map((input) => {
-        return { material: input.material.id, qty: input.qty };
+        return { material: input.material, amount: input.amount };
       }) ?? [],
-    output: { material: options.output.material.id, qty: options.output.qty },
-    planet_gate: null,
-    research: null,
-    schematic: false,
-    tier: 0,
-    workforce: '',
+    output: { material: options.output.material, amount: options.output.amount },
   };
 }

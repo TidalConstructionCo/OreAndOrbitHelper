@@ -1,8 +1,7 @@
-import type { Recipe } from '../api-access';
 import type { CraftingTree } from '../domain/craftingTree/craftingTree';
 import type { RecipeUtilization } from '../domain/craftingTree/treeAnalysis';
-import type { Material, Building } from '../domain/gameData';
-import { formatAmountNew, formatPercentNew } from './formatting';
+import type { Material, Recipe } from '../domain/gameData';
+import { formatAmount, formatPercent } from './formatting';
 
 export function renderSummary(
   tree: CraftingTree,
@@ -11,8 +10,6 @@ export function renderSummary(
   utilization: RecipeUtilization,
   summaryElement: HTMLElement,
   extractorRequirements: Map<Material, number>,
-  buildings: Building[],
-  availableMaterials: Material[],
 ): void {
   // TODO: don't replace children anymore, cache and update in place
   summaryElement.replaceChildren();
@@ -23,7 +20,7 @@ export function renderSummary(
   const sourcedPanel = createSourcedMaterialDisplay(sourcedItemAmounts);
   summaryElement.appendChild(sourcedPanel);
 
-  const utilizationPanel = createUtilizationDisplay(utilization, buildings, availableMaterials);
+  const utilizationPanel = createUtilizationDisplay(utilization);
   summaryElement.appendChild(utilizationPanel);
 
   const extractorPanel = createExtractorPanel(extractorRequirements, tree.root.targetMaterial.name);
@@ -44,7 +41,7 @@ function createFormattedMaterialAmount(
   iconHeight: number,
 ): HTMLElement[] {
   const formattedAmount = document.createElement('span');
-  formattedAmount.textContent = `${formatAmountNew(amount)}x `;
+  formattedAmount.textContent = `${formatAmount(amount)}x `;
   const icon = document.createElement('img');
   icon.width = iconWidth;
   icon.height = iconHeight;
@@ -75,46 +72,35 @@ function combineMaterials(materialFoo: HTMLElement[][]): HTMLElement[] {
   return result;
 }
 
-function createFormattedRecipe(recipe: Recipe, materials: Material[]): HTMLElement[] {
+function createFormattedRecipe(recipe: Recipe): HTMLElement[] {
   const formattedInputs = recipe.inputs
     .map((input) => {
-      const material = materials.find((m) => m.id === input.material);
-      if (material === undefined) {
-        return [];
-      }
-      return createFormattedMaterialAmount(material, input.qty, 16, 16);
+      return createFormattedMaterialAmount(input.material, input.amount, 16, 16);
     })
     .filter((list) => list.length !== 0);
 
   const inputs = combineMaterials(formattedInputs);
   const arrow = document.createElement('span');
   arrow.textContent = ' ⟶ ';
-  const outputMaterial = materials.find((m) => m.id === recipe.output.material);
-  if (outputMaterial === undefined) {
-    // TODO: is an error case
-    return [];
-  }
-  const formattedOutputs = createFormattedMaterialAmount(outputMaterial, recipe.output.qty, 16, 16);
+  const formattedOutputs = createFormattedMaterialAmount(
+    recipe.output.material,
+    recipe.output.amount,
+    16,
+    16,
+  );
   const byproduct = recipe.byproduct;
-  if (byproduct !== null) {
-    const byproductMaterial = materials.find((m) => m.id === byproduct.material);
-    if (byproductMaterial !== undefined) {
-      const plus = document.createElement('span');
-      plus.textContent = ' + ';
-      formattedOutputs.push(
-        plus,
-        ...createFormattedMaterialAmount(byproductMaterial, byproduct.qty, 16, 16),
-      );
-    }
+  if (byproduct !== undefined) {
+    const plus = document.createElement('span');
+    plus.textContent = ' + ';
+    formattedOutputs.push(
+      plus,
+      ...createFormattedMaterialAmount(byproduct.material, byproduct.amount, 16, 16),
+    );
   }
   return [...inputs, arrow, ...formattedOutputs];
 }
 
-function createUtilizationDisplay(
-  utilization: RecipeUtilization,
-  buildings: Building[],
-  availableMaterials: Material[],
-): HTMLDivElement {
+function createUtilizationDisplay(utilization: RecipeUtilization): HTMLDivElement {
   const utilizationPanel = document.createElement('div');
   utilizationPanel.className = 'panel';
 
@@ -130,18 +116,15 @@ function createUtilizationDisplay(
   for (const [recipe, utilization] of recipeTotals) {
     const item = document.createElement('li');
     const itemContainer = document.createElement('div');
-    const building = buildings.find((b) => b.id === recipe.building);
-    if (building !== undefined) {
-      const icon = document.createElement('img');
-      icon.width = 24;
-      icon.height = 24;
-      icon.src = building.iconUrl;
-      itemContainer.appendChild(icon);
-    }
+    const icon = document.createElement('img');
+    icon.width = 24;
+    icon.height = 24;
+    icon.src = recipe.building.iconUrl;
+    itemContainer.appendChild(icon);
     const text = document.createElement('span');
-    text.textContent = `${formatPercentNew(utilization)}: `;
+    text.textContent = `${formatPercent(utilization)}: `;
     itemContainer.appendChild(text);
-    for (const foo of createFormattedRecipe(recipe, availableMaterials)) {
+    for (const foo of createFormattedRecipe(recipe)) {
       itemContainer.appendChild(foo);
     }
 
@@ -211,7 +194,7 @@ function createSourcedMaterialDisplay(sourcedItemAmounts: Map<Material, number>)
 function createMaterialDisplay(material: Material, amount: number): HTMLDivElement {
   const itemContainer = document.createElement('div');
   const itemAmount = document.createElement('span');
-  itemAmount.textContent = `${formatAmountNew(amount)}x `;
+  itemAmount.textContent = `${formatAmount(amount)}x `;
   itemContainer.appendChild(itemAmount);
 
   const itemIcon = document.createElement('img');
