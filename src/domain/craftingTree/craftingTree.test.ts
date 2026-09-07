@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { CraftingTree, RecipeChoices, RecipeNode, TreePath } from './craftingTree';
 import { buildTree, selectProducingRecipe } from './craftingTree';
-import type { Material, Recipe } from '../../api-access';
 import { createDummyMaterial, createDummyRecipe } from './treeTestUtils';
+import type { Recipe } from '../gameData';
 
 describe('buildTree', () => {
   it('builds tree with one node when there are no recipes', () => {
-    const targetMaterial: Material = createDummyMaterial();
+    const targetMaterial = createDummyMaterial();
     const expected: CraftingTree = {
       root: {
         targetAmount: 1,
@@ -22,24 +22,24 @@ describe('buildTree', () => {
   });
   it('turns sourced input into sourced node', () => {
     // arrange
-    const targetMaterial: Material = createDummyMaterial({ id: 'targetMaterial' });
-    const intermediateMaterial: Material = createDummyMaterial({ id: 'intermediateMaterial' });
-    const rawMaterial1: Material = createDummyMaterial({ id: 'rawMaterial1' });
-    const rawMaterial2: Material = createDummyMaterial({ id: 'rawMaterial2' });
+    const targetMaterial = createDummyMaterial({ id: 'targetMaterial' });
+    const intermediateMaterial = createDummyMaterial({ id: 'intermediateMaterial' });
+    const rawMaterial1 = createDummyMaterial({ id: 'rawMaterial1' });
+    const rawMaterial2 = createDummyMaterial({ id: 'rawMaterial2' });
     const recipe1 = createDummyRecipe({
-      output: { material: targetMaterial, qty: 1 },
+      output: { material: targetMaterial, amount: 1 },
       duration: 30,
       inputs: [
-        { material: rawMaterial1, qty: 1 },
-        { material: intermediateMaterial, qty: 5 },
+        { material: rawMaterial1, amount: 1 },
+        { material: intermediateMaterial, amount: 5 },
       ],
     });
     const recipe2 = createDummyRecipe({
-      output: { material: intermediateMaterial, qty: 10 },
+      output: { material: intermediateMaterial, amount: 10 },
       duration: 30,
       inputs: [
-        { material: rawMaterial1, qty: 2 },
-        { material: rawMaterial2, qty: 3 },
+        { material: rawMaterial1, amount: 2 },
+        { material: rawMaterial2, amount: 3 },
       ],
     });
 
@@ -64,24 +64,24 @@ describe('buildTree', () => {
   });
   it('overrides extraction with recipe when forced', () => {
     // arrange
-    const targetMaterial: Material = createDummyMaterial({ id: 'targetMaterial' });
-    const intermediateMaterial: Material = createDummyMaterial({ id: 'intermediateMaterial' });
-    const rawMaterial1: Material = createDummyMaterial({ id: 'rawMaterial1' });
-    const rawMaterial2: Material = createDummyMaterial({ id: 'rawMaterial2' });
+    const targetMaterial = createDummyMaterial({ id: 'targetMaterial' });
+    const intermediateMaterial = createDummyMaterial({ id: 'intermediateMaterial' });
+    const rawMaterial1 = createDummyMaterial({ id: 'rawMaterial1' });
+    const rawMaterial2 = createDummyMaterial({ id: 'rawMaterial2' });
     const recipe1 = createDummyRecipe({
-      output: { material: targetMaterial, qty: 1 },
+      output: { material: targetMaterial, amount: 1 },
       duration: 30,
       inputs: [
-        { material: rawMaterial1, qty: 1 },
-        { material: intermediateMaterial, qty: 5 },
+        { material: rawMaterial1, amount: 1 },
+        { material: intermediateMaterial, amount: 5 },
       ],
     });
     const recipe2 = createDummyRecipe({
-      output: { material: intermediateMaterial, qty: 10 },
+      output: { material: intermediateMaterial, amount: 10 },
       duration: 30,
       inputs: [
-        { material: rawMaterial1, qty: 2 },
-        { material: rawMaterial2, qty: 3 },
+        { material: rawMaterial1, amount: 2 },
+        { material: rawMaterial2, amount: 3 },
       ],
     });
 
@@ -90,7 +90,7 @@ describe('buildTree', () => {
       targetMaterial,
       [targetMaterial, rawMaterial1, rawMaterial2, intermediateMaterial],
       [recipe1, recipe2],
-      [intermediateMaterial.id],
+      [intermediateMaterial],
       new Map<TreePath, Recipe>(),
       [],
       [`${targetMaterial.id}>${intermediateMaterial.id}`],
@@ -124,7 +124,7 @@ describe('selectProducingRecipe', () => {
     const targetMaterial = createDummyMaterial({ id: 'target' });
     const unrelatedMaterial = createDummyMaterial({ id: 'unrelated' });
     const availableRecipes: Recipe[] = [
-      createDummyRecipe({ output: { material: unrelatedMaterial, qty: 1 } }),
+      createDummyRecipe({ output: { material: unrelatedMaterial, amount: 1 } }),
     ];
     const path: TreePath = targetMaterial.id;
 
@@ -139,8 +139,10 @@ describe('selectProducingRecipe', () => {
     // arrange
     const recipeChoices: RecipeChoices = new Map<TreePath, Recipe>();
     const targetMaterial = createDummyMaterial({ id: 'target' });
-    const targetRecipe = createDummyRecipe({ output: { material: targetMaterial, qty: 1 } });
-    const otherMatchingRecipe = createDummyRecipe({ output: { material: targetMaterial, qty: 2 } });
+    const targetRecipe = createDummyRecipe({ output: { material: targetMaterial, amount: 1 } });
+    const otherMatchingRecipe = createDummyRecipe({
+      output: { material: targetMaterial, amount: 2 },
+    });
     const availableRecipes: Recipe[] = [targetRecipe, otherMatchingRecipe];
     const path: TreePath = targetMaterial.id;
 

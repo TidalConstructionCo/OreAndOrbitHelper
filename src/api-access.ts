@@ -3,6 +3,7 @@ import { getApiKey } from './api-key';
 const baseUri = 'https://oreandorbit.com/api/v1/';
 
 import { z } from 'zod';
+// import type { MaterialAmount } from './domain/gameData';
 
 const MaterialSchema = z.object({
   id: z.string(),
@@ -168,7 +169,7 @@ export async function getExtraction(): Promise<ExtractionResponse | undefined> {
   return result.data;
 }
 
-export const BuildingSchema = z.object({
+const BuildingSchema = z.object({
   id: z.string(),
   name: z.string(),
   icon: z.url(),

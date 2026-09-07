@@ -1,6 +1,5 @@
 import * as d3 from 'd3';
 import type { HierarchyPointLink, HierarchyPointNode, Selection } from 'd3';
-import type { Material, Recipe } from '../api-access';
 import type {
   RawMaterialNode,
   RecipeNode,
@@ -8,7 +7,8 @@ import type {
   TreeNode,
   TreePath,
 } from '../domain/craftingTree/craftingTree';
-import { formatAmountNew, formatPercentNew } from './formatting';
+import { formatAmount, formatPercent } from './formatting';
+import type { Material, Recipe } from '../domain/gameData';
 
 type NodeGroup = Selection<SVGGElement, unknown, null, undefined>;
 type ContentSelection = Selection<HTMLDivElement, unknown, null, undefined>;
@@ -226,7 +226,7 @@ function addMaterialTitle(
   materialLine
     .append('img')
     .attr('class', 'material-icon')
-    .attr('src', material.icon)
+    .attr('src', material.iconUrl)
     .attr('width', 16)
     .attr('height', 16);
   materialLine.append('span').text(material.name);
@@ -272,7 +272,7 @@ function createRecipeNode(
   metrics
     .append('img')
     .attr('class', 'building-icon')
-    .attr('src', node.building.icon)
+    .attr('src', node.building.iconUrl)
     .attr('aria-hidden', 'true');
 
   const metricsLines = metrics.append('div').attr('class', 'recipe-metric-lines');
@@ -280,14 +280,13 @@ function createRecipeNode(
     .append('div')
     .attr('class', 'node-line details')
     .text(
-      `${formatAmountNew(node.totalCycles)} cycles ` +
-        `(${formatAmountNew(node.totalDuration)} min)`,
+      `${formatAmount(node.totalCycles)} cycles ` + `(${formatAmount(node.totalDuration)} min)`,
     );
 
   metricsLines
     .append('div')
     .attr('class', 'node-line details')
-    .text(`${formatPercentNew(node.utilization)} utilization`);
+    .text(`${formatPercent(node.utilization)} utilization`);
 
   if (!node.hasExtractionRecipe) {
     return;
@@ -346,15 +345,16 @@ function appendRecipeDisplay(content: ContentSelection, node: RecipeNode): void 
 }
 
 // TODO: use actual formatting with icons etc
+// icons not possible with select, but maybe that's alright
 function formatRecipe(recipe: Recipe): string {
   const inputs = recipe.inputs
-    .map((input) => `${String(input.qty)}x ${input.material}`)
+    .map((input) => `${String(input.amount)}x ${input.material.name}`)
     .join(' + ');
 
   const output =
-    `${String(recipe.output.qty)}x ${recipe.output.material}` +
-    (recipe.byproduct !== null
-      ? ` ${recipe.byproduct.material}x ${recipe.byproduct.material}`
+    `${String(recipe.output.amount)}x ${recipe.output.material.name}` +
+    (recipe.byproduct !== undefined
+      ? ` ${recipe.byproduct.material.name}x ${recipe.byproduct.material.name}`
       : '');
 
   return `${inputs} → ${output}`;

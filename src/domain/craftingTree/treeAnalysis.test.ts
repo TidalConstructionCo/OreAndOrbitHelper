@@ -13,13 +13,13 @@ describe('getSummedUtilization', () => {
     const rawMaterial = createDummyMaterial({ id: 'rawId' });
     const inputMaterialRecipe = createDummyRecipe({
       duration: 50,
-      inputs: [{ material: rawMaterial, qty: 1 }],
-      output: { material: inputMaterial, qty: 2 },
+      inputs: [{ material: rawMaterial, amount: 1 }],
+      output: { material: inputMaterial, amount: 2 },
     });
     const mainRecipe = createDummyRecipe({
       duration: 100,
-      inputs: [{ material: inputMaterial, qty: 1 }],
-      output: { material: targetMaterial, qty: 2 },
+      inputs: [{ material: inputMaterial, amount: 1 }],
+      output: { material: targetMaterial, amount: 2 },
     });
     const tree = buildTree(
       targetMaterial,
@@ -50,18 +50,18 @@ describe('getSummedUtilization', () => {
     const rawMaterial = createDummyMaterial({ id: 'rawId' });
     const inputMaterialRecipe2 = createDummyRecipe({
       duration: 1,
-      inputs: [{ material: rawMaterial, qty: 1 }],
-      output: { material: inputMaterial2, qty: 3 },
+      inputs: [{ material: rawMaterial, amount: 1 }],
+      output: { material: inputMaterial2, amount: 3 },
     });
     const inputMaterialRecipe = createDummyRecipe({
       duration: 1,
-      inputs: [{ material: inputMaterial2, qty: 1 }],
-      output: { material: inputMaterial, qty: 2 },
+      inputs: [{ material: inputMaterial2, amount: 1 }],
+      output: { material: inputMaterial, amount: 2 },
     });
     const mainRecipe = createDummyRecipe({
       duration: 2,
-      inputs: [{ material: inputMaterial, qty: 1 }],
-      output: { material: targetMaterial, qty: 1 },
+      inputs: [{ material: inputMaterial, amount: 1 }],
+      output: { material: targetMaterial, amount: 1 },
     });
     const tree = buildTree(
       targetMaterial,

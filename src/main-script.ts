@@ -16,7 +16,6 @@
  */
 import { API_KEY_STORAGE_KEY, getApiKey, initializeApiPageNew } from './api-key.js';
 import { renderSummary } from './ui/summary';
-import type { Recipe } from './api-access';
 import {
   BuildingsResponseSchema,
   ExtractionResponseSchema,
@@ -39,6 +38,13 @@ import {
   getSummedSourcedItems,
   getSummedUtilization,
 } from './domain/craftingTree/treeAnalysis.js';
+import {
+  convertBuilding,
+  convertMaterial,
+  tryConvertExtractionRecipe,
+  tryConvertRecipe,
+  type Recipe,
+} from './domain/gameData.js';
 
 let GLOBAL_STATE = createInitialState();
 const buttons = document.querySelectorAll<HTMLElement>('.tool-button');
@@ -54,16 +60,33 @@ function loadCachedGameData(state: AppState): AppState {
   const cachedExtraction = loadCache(CACHE_KEYS.locations, ExtractionResponseSchema);
   const cachedBuildings = loadCache(CACHE_KEYS.buildings, BuildingsResponseSchema);
 
+  const materials =
+    cachedMaterials !== undefined
+      ? cachedMaterials.data.data.map((m) => convertMaterial(m))
+      : state.gameData.materials;
+  const buildings =
+    cachedBuildings !== undefined
+      ? cachedBuildings.data.data.map((b) => convertBuilding(b))
+      : state.gameData.buildings;
   return {
     ...state,
     gameData: {
-      materialData:
-        cachedMaterials !== undefined ? cachedMaterials.data : state.gameData.materialData,
-      recipeData: cachedRecipes !== undefined ? cachedRecipes.data : state.gameData.recipeData,
-      extractionData:
-        cachedExtraction !== undefined ? cachedExtraction.data : state.gameData.extractionData,
-      buildingData:
-        cachedBuildings !== undefined ? cachedBuildings.data : state.gameData.buildingData,
+      materials: materials,
+      recipes:
+        cachedRecipes !== undefined
+          ? cachedRecipes.data.data.flatMap((r) => {
+              const recipes = tryConvertRecipe(r, materials, buildings);
+              return recipes === undefined ? [] : [recipes];
+            })
+          : state.gameData.recipes,
+      extractionRecipes:
+        cachedExtraction !== undefined
+          ? cachedExtraction.data.data.flatMap((e) => {
+              const data = tryConvertExtractionRecipe(e, materials);
+              return data === undefined ? [] : [data];
+            })
+          : state.gameData.extractionRecipes,
+      buildings: buildings,
     },
   };
 }
@@ -86,26 +109,33 @@ async function updateGameData(state: AppState): Promise<AppState> {
   const materialApiResult = await getMaterials();
   // TODO: streamline, almost duplicated to the cache load case
   if (materialApiResult !== undefined) {
-    result.gameData.materialData = materialApiResult;
+    result.gameData.materials = materialApiResult.data.map((m) => convertMaterial(m));
     saveToCache(CACHE_KEYS.materials, materialApiResult);
+  }
+
+  const buildingApiResult = await getBuildingData();
+  if (buildingApiResult !== undefined) {
+    result.gameData.buildings = buildingApiResult.data.map(convertBuilding);
+    saveToCache(CACHE_KEYS.buildings, buildingApiResult);
   }
 
   const recipeApiResult = await getRecipes();
   if (recipeApiResult !== undefined) {
-    result.gameData.recipeData = recipeApiResult;
+    const recipes = recipeApiResult.data.flatMap((r) => {
+      const recipe = tryConvertRecipe(r, result.gameData.materials, result.gameData.buildings);
+      return recipe === undefined ? [] : [recipe];
+    });
+    result.gameData.recipes = recipes;
     saveToCache(CACHE_KEYS.recipes, recipeApiResult);
   }
 
   const extractionApiResult = await getExtraction();
   if (extractionApiResult !== undefined) {
-    result.gameData.extractionData = extractionApiResult;
+    result.gameData.extractionRecipes = extractionApiResult.data.flatMap((e) => {
+      const data = tryConvertExtractionRecipe(e, result.gameData.materials);
+      return data === undefined ? [] : [data];
+    });
     saveToCache(CACHE_KEYS.locations, extractionApiResult);
-  }
-
-  const buildingApiResult = await getBuildingData();
-  if (buildingApiResult !== undefined) {
-    result.gameData.buildingData = buildingApiResult;
-    saveToCache(CACHE_KEYS.buildings, buildingApiResult);
   }
 
   return result;
@@ -155,7 +185,7 @@ function initializeResizeHandler(): void {
 }
 
 function updateSelectedTarget(state: AppState, selectedTarget: string): AppState {
-  const matchingMaterial = state.gameData.materialData.data.find((m) => m.id === selectedTarget);
+  const matchingMaterial = state.gameData.materials.find((m) => m.id === selectedTarget);
   if (matchingMaterial !== undefined) {
     return { ...state, craftingTree: { ...state.craftingTree, targetMaterial: matchingMaterial } };
   } else {
@@ -203,14 +233,14 @@ function initialize(): void {
   let newState = { ...GLOBAL_STATE };
   newState = loadApiKey(newState);
   newState = loadCachedGameData(newState);
-  for (const material of newState.gameData.extractionData.data.map((e) => e.material)) {
-    newState = updateAvailability(newState, material, 5);
+  for (const material of newState.gameData.extractionRecipes.map((e) => e.material)) {
+    newState = updateAvailability(newState, material.id, 5);
   }
   if (
     newState.craftingTree.targetMaterial === undefined &&
-    newState.gameData.materialData.data[0] !== undefined
+    newState.gameData.materials[0] !== undefined
   ) {
-    newState = updateSelectedTarget(newState, newState.gameData.materialData.data[0].id);
+    newState = updateSelectedTarget(newState, newState.gameData.materials[0].id);
   }
 
   initializeReloadDataButton();
@@ -360,10 +390,10 @@ function renderToolbar(selectedTab: TabId): void {
 function isGameDataReady(gameData: GameData): boolean {
   // TODO: get a better way to determine
   return (
-    gameData.materialData.data.length > 0 &&
-    gameData.recipeData.data.length > 0 &&
-    gameData.extractionData.data.length > 0 &&
-    gameData.buildingData.data.length > 0
+    gameData.materials.length > 0 &&
+    gameData.recipes.length > 0 &&
+    gameData.extractionRecipes.length > 0 &&
+    gameData.buildings.length > 0
   );
 }
 
@@ -414,7 +444,7 @@ function renderMaterialSelect(state: AppState, select: HTMLSelectElement): void 
   const targetMaterial = state.craftingTree.targetMaterial;
   select.replaceChildren();
 
-  const materials = state.gameData.materialData.data;
+  const materials = state.gameData.materials;
   for (const material of materials) {
     const option = document.createElement('option');
     // TODO: one of them should be the display name
@@ -463,13 +493,13 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
   }
   const tree = buildTree(
     state.craftingTree.targetMaterial,
-    state.gameData.materialData.data,
-    state.gameData.recipeData.data,
-    state.gameData.extractionData.data.map((e) => e.material),
+    state.gameData.materials,
+    state.gameData.recipes,
+    state.gameData.extractionRecipes.map((e) => e.material),
     state.craftingTree.recipeChoices,
     state.craftingTree.sourcedMaterials,
     state.craftingTree.recipeOverrides,
-    state.gameData.buildingData.data,
+    state.gameData.buildings,
   );
 
   renderCraftingTree(
@@ -503,11 +533,9 @@ function renderCraftingTreeContent(state: AppState, parent: HTMLElement): void {
       summary,
       getExtractorRequirements(
         tree,
-        state.gameData.extractionData.data,
+        state.gameData.extractionRecipes,
         state.craftingTree.extractionYields,
       ),
-      state.gameData.buildingData.data,
-      state.gameData.materialData.data,
     );
   }
 }
@@ -580,7 +608,7 @@ function renderSourcedMaterials(state: AppState, parent: HTMLDivElement): void {
   const targetMaterial = state.craftingTree.selectedSourcedMaterial;
   select.replaceChildren();
 
-  const remainingMaterials = state.gameData.materialData.data.filter(
+  const remainingMaterials = state.gameData.materials.filter(
     (material) =>
       !state.craftingTree.sourcedMaterials.some((sourced) => sourced.id === material.id),
   );
@@ -683,7 +711,7 @@ function initializeAddSourcedMaterialButton(): void {
 }
 
 function updateSourcedMaterialList(state: AppState, selectedTarget: string): AppState {
-  const matchingMaterial = state.gameData.materialData.data.find((m) => m.id === selectedTarget);
+  const matchingMaterial = state.gameData.materials.find((m) => m.id === selectedTarget);
   if (matchingMaterial !== undefined) {
     return {
       ...state,
@@ -699,7 +727,7 @@ function updateSourcedMaterialList(state: AppState, selectedTarget: string): App
 }
 
 function updateSourcedMaterialSelect(state: AppState, selectedTarget: string): AppState {
-  const matchingMaterial = state.gameData.materialData.data.find((m) => m.id === selectedTarget);
+  const matchingMaterial = state.gameData.materials.find((m) => m.id === selectedTarget);
   if (matchingMaterial !== undefined) {
     return {
       ...state,
